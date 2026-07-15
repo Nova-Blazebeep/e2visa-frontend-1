@@ -1,0 +1,253 @@
+@import "slick-carousel/slick/slick.css";
+@import "slick-carousel/slick/slick-theme.css";
+
+@font-face {
+  font-family: 'Hurme Geometric Sans 4';
+  src: url('/fonts/HurmeGeometricSans4-Regular.woff2') format('woff2'),
+       url('/fonts/HurmeGeometricSans4-Regular.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Hurme Geometric Sans 4';
+  src: url('/fonts/HurmeGeometricSans4-Bold.woff2') format('woff2'),
+       url('/fonts/HurmeGeometricSans4-Bold.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+  --font-hurme: 'Hurme Geometric Sans 4', sans-serif;
+}
+
+:root {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+html, body {
+  font-family: 'Hurme Geometric Sans 4', sans-serif !important;
+}
+
+* {
+  font-family: inherit;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-hurme);
+}
+
+.search-bg-gradient {
+  border: 1px solid;
+  border-image-source: linear-gradient(
+    90.57deg,
+    rgba(255, 255, 255, 0.31) 4.3%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  backdrop-filter: blur(29px);
+}
+
+.featured-border {
+  border-image-slice: 1;
+  overflow: hidden;
+  backdrop-filter: blur(89px);
+  border-image-source: linear-gradient(
+    111.99deg,
+    rgba(255, 255, 255, 0.28) 0.74%,
+    rgba(255, 255, 255, 0) 96.98%
+  );
+  border-radius: 53px;
+  border: 29px solid;
+  background: #ffffff26;
+}
+
+.carousel-container {
+  overflow: hidden;
+  position: relative;
+}
+
+.carousel-slide {
+  transition: transform 0.5s ease-in-out;
+}
+
+.carousel-slide > * {
+  flex-shrink: 0;
+}
+
+.listing-card-border {
+  border: 1px solid #ffffff;
+  border-radius: 22px;
+  backdrop-filter: blur(15px);
+  background: #ffffff1a;
+}
+
+.active-list {
+  background: #ffffff66;
+  border: 1px solid white; 
+  backdrop-filter: blur(29px);
+}
+
+.listing-tabs {
+  background: #ffffff26;
+  border: 1px solid;
+  border-image-source: linear-gradient(
+    90.57deg,
+    rgba(255, 255, 255, 0.31) 4.3%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  backdrop-filter: blur(29px);
+}
+
+.professional-name-tags {
+  background: #FFFFFFB2;
+  backdrop-filter: blur(45.74422073364258px);
+}
+
+.footer-bar {
+  /* background: var(--Blue-Gray-800, #1E293B); */
+  background:#50534F;
+  color: #FFFFFF;
+}
+
+.signin-bg {
+  background: rgba(255, 255, 255, 0.8);
+}
+
+/* Hides the scrollbar on horizontally-scrolling card sliders while keeping it scrollable. */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.96) translateY(4px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.bgImg{
+  background-image: url('../public/images/HeroSection/bgImg.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* Slider Custom Styles */
+.listing-slider .slick-prev,
+.listing-slider .slick-next {
+  width: 32px;
+  height: 32px;
+  /* background: #0A3161 !important; */
+  border-radius: 50%;
+  z-index: 1;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.listing-slider .slick-prev::before {
+  content: "<" !important;
+  font-size: 20px;
+  color: white !important;
+  opacity: 1;
+  font-weight: bold;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  margin-bottom: 5px;
+  margin-right: 3px;
+}
+
+.listing-slider .slick-next::before {
+  content: ">" !important;
+  font-size: 20px;
+  color: white !important;
+  opacity: 1;
+  font-weight: bold;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  margin-bottom: 5px;
+  margin-left: 3px;
+
+}
+
+.listing-slider .slick-prev {
+  left: -30px;
+}
+
+.listing-slider .slick-next {
+  right: -30px;
+}
+
+.listing-slider .slick-prev:hover,
+.listing-slider .slick-next:hover {
+  /* background: #0A3161 !important; */
+}
+
+.listing-slider .slick-dots li button:before {
+  color: white;
+}
+
+.listing-slider .slick-dots li.slick-active button:before {
+  color: #2EC4B6;
+}
+
+.listing-slider .slick-slide {
+  padding: 0 10px;
+}
+
+/* Ensure arrows are visible on mobile */
+@media (max-width: 768px) {
+  .listing-slider .slick-prev {
+    left: 0;
+  }
+  
+  .listing-slider .slick-next {
+    right: 0;
+  }
+}
+
+.custom-toast {
+  background: #40433F !important;
+  color: #fff !important;
+  box-shadow: 0 4px 24px 0 rgba(0,0,0,0.18), 0 1.5px 4px 0 rgba(0,0,0,0.15);
+}
+
+/* Error toast: red border */
+.custom-toast.Toastify__toast--error {
+  border-left: 6px solid #e3342f; /* Tailwind's red-600 */
+}
+
+/* Success toast: green border (optional) */
+.custom-toast.Toastify__toast--success {
+  border-left: 6px solid #22c55e;
+}

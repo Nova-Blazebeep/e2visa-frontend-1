@@ -1,0 +1,29 @@
+{
+  "name": "e2visa-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "critters": "^0.0.20",
+    "leaflet": "^1.9.4",
+    "next": "14.1.0",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "react-google-recaptcha": "^3.1.0",
+    "react-slick": "^0.30.3",
+    "react-toastify": "^11.0.5",
+    "slick-carousel": "^1.8.1"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.14",
+    "t": "^8.56.0",
+    "eslint-config-next": "14.1.0",
+    "postcss": "^8.4.31",
+    "tailwindcss": "^3.3.0"
+  }
+}
