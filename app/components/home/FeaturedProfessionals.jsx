@@ -42,8 +42,8 @@ const ProCard = ({ pro, onClick, backendUrl }) => {
       className="w-[280px] flex-shrink-0 snap-start bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer flex flex-col"
       onClick={onClick}
     >
-      {/* Photo / avatar */}
-      <div className="relative w-full h-[180px] flex-shrink-0 bg-gradient-to-b from-[#e8edf5] to-[#c8d4e8] flex items-center justify-center">
+      {/* Photo / avatar — 4:5 portrait ratio scales with card width; object-top keeps heads in frame */}
+      <div className="relative w-full aspect-[4/5] flex-shrink-0 bg-gradient-to-b from-[#e8edf5] to-[#c8d4e8] flex items-center justify-center">
         {showPlaceholder ? (
           <svg width="90" height="90" viewBox="0 0 100 100" fill="none">
             <circle cx="50" cy="50" r="50" fill="#b8c8dc" />
@@ -54,7 +54,7 @@ const ProCard = ({ pro, onClick, backendUrl }) => {
           <img
             src={imageUrl}
             alt={pro.name}
-            className="w-full h-full object-cover"
+            className="absolute inset-0 w-full h-full object-cover object-top"
             onError={() => setImgFailed(true)}
           />
         )}
