@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import RoleIcon from '../components/common/RoleIcon';
 
 function shuffle(arr) {
   const a = [...arr];
@@ -41,6 +42,7 @@ function Professionals() {
   const [error, setError] = useState(null);
   const [professionals, setProfessionals] = useState([]);
   const [roleName, setRoleName] = useState('');
+  const [roleBadge, setRoleBadge] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const professionalsPerPage = 6;
 
@@ -93,7 +95,10 @@ function Professionals() {
       .then(r => r.json())
       .then(d => {
         const role = (d.result || []).find(r => String(r.id) === String(roleId));
-        if (role) setRoleName(role.name);
+        if (role) {
+          setRoleName(role.name);
+          setRoleBadge(role.badge?.icon || null);
+        }
       }).catch(() => {});
 
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/professionals/profession?profession_id=${roleId}`, {
@@ -137,7 +142,18 @@ function Professionals() {
 
         {/* Profession heading — shown when a role is selected */}
         {roleId && roleName && (
-          <h2 className="text-3xl font-bold text-center text-[#40433F] mb-10">
+          <h2 className="flex items-center justify-center gap-3 text-3xl font-bold text-center text-[#40433F] mb-10">
+            {roleBadge ? (
+              <img
+                src={`${process.env.NEXT_PUBLIC_BACKEND_STORAGE_URL}/${roleBadge}`}
+                alt=""
+                className="w-11 h-11 rounded-full object-cover flex-shrink-0 shadow-sm"
+              />
+            ) : (
+              <span className="w-11 h-11 rounded-full bg-[#2EC4B6]/10 flex items-center justify-center">
+                <RoleIcon name={roleName} size={22} className="text-[#2EC4B6]" />
+              </span>
+            )}
             {pluralize(roleName)}
           </h2>
         )}

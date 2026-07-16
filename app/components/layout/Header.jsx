@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useState, useRef, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import ProfileDropdown from '../common/ProfileDropdown';
+import RoleIcon from '../common/RoleIcon';
 import { useAuth } from '@/app/context/AuthContext';
 
 const Header = () => {
@@ -56,6 +57,7 @@ const Header = () => {
             ordered.map((prof) => ({
               href: `/professionals?role=${prof.id}`,
               label: prof.name,
+              badgeIcon: prof.badge?.icon || null,
             }))
           );
     }
@@ -118,11 +120,20 @@ const Header = () => {
                       <ul className="py-2">
                         {professionalDropdownItems.map((subitem) => (
                           <li key={subitem.href}>
-                            <Link 
-                              href={subitem.href} 
-                              className="block px-4 py-2 hover:bg-gray-100 whitespace-nowrap text-sm font-medium"
+                            <Link
+                              href={subitem.href}
+                              className="flex items-center gap-2.5 px-4 py-2 hover:bg-gray-100 whitespace-nowrap text-sm font-medium"
                               onClick={() => setIsProfessionalDropdownOpen(false)}
                             >
+                              {subitem.badgeIcon ? (
+                                <img
+                                  src={`${process.env.NEXT_PUBLIC_BACKEND_STORAGE_URL}/${subitem.badgeIcon}`}
+                                  alt=""
+                                  className="w-6 h-6 rounded-full object-cover flex-shrink-0"
+                                />
+                              ) : (
+                                <RoleIcon name={subitem.label} size={16} className="text-[#2EC4B6]" />
+                              )}
                               {subitem.label}
                             </Link>
                           </li>
@@ -241,14 +252,23 @@ const Header = () => {
                     <ul className={`py-2 transition-all duration-200 ${isMobileProfessionalDropdownOpen ? 'max-h-screen' : 'max-h-0 overflow-hidden'}`}>
                       {professionalDropdownItems.map((subitem) => (
                         <li key={subitem.href}>
-                          <Link 
-                            href={subitem.href} 
-                            className="block py-2 hover:text-gray-300 transition-colors whitespace-nowrap w-fit text-sm font-medium"
+                          <Link
+                            href={subitem.href}
+                            className="flex items-center gap-2.5 py-2 hover:text-gray-300 transition-colors whitespace-nowrap w-fit text-sm font-medium"
                             onClick={() => {
                               setIsMobileProfessionalDropdownOpen(false);
                               toggleSidebar(); // Close the sidebar when a subitem is clicked
                             }}
                           >
+                            {subitem.badgeIcon ? (
+                              <img
+                                src={`${process.env.NEXT_PUBLIC_BACKEND_STORAGE_URL}/${subitem.badgeIcon}`}
+                                alt=""
+                                className="w-6 h-6 rounded-full object-cover flex-shrink-0"
+                              />
+                            ) : (
+                              <RoleIcon name={subitem.label} size={16} className="text-[#2EC4B6]" />
+                            )}
                             {subitem.label}
                           </Link>
                         </li>
