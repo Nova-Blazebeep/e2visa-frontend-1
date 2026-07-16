@@ -74,7 +74,10 @@ export default function ListingsTabs() {
   return (
     <div className="bg-[#40433F] py-[52px] text-white">
       <div className="container mx-auto px-4">
-        <h1 className="text-center xl:text-3xl text-2xl text-white font-bold mb-20">New Listings</h1>
+        <h1 className="text-center xl:text-3xl text-2xl text-white font-bold mb-3">New Listings</h1>
+        <p className="text-center text-gray-300 text-sm md:text-base mb-16 max-w-2xl mx-auto">
+          Fresh on the market — explore businesses and properties ready for their next owner.
+        </p>
 
         {loading ? (
           <LoadingSpinner />

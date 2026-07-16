@@ -263,49 +263,73 @@ const BusinessDetail = ({ params }) => {
           {/* Business sequence: Asking Price → Country → State → County → Primary Business Type → Listing Type → Secondary Business Types → Year Established */}
           {hasNumeric(business.asking_price) && (
             <div className="flex text-[#40433F] justify-between text-lg xl:text-2xl items-center">
-              <span>Asking Price</span>
+              <span className="flex items-center gap-2">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#40433F" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                Asking Price
+              </span>
               <span className="font-semibold">${parseInt(business.asking_price, 10).toLocaleString()}</span>
             </div>
           )}
           {hasValue(business.country?.name) && (
             <div className="flex text-[#64748B] justify-between items-center">
-              <span>Country</span>
+              <span className="flex items-center gap-2">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                Country
+              </span>
               <span>{business.country.name}</span>
             </div>
           )}
           {hasValue(business.state?.name) && (
             <div className="flex text-[#64748B] justify-between items-center">
-              <span>State</span>
+              <span className="flex items-center gap-2">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>
+                State
+              </span>
               <span>{business.state.name}</span>
             </div>
           )}
           {hasValue(business.county?.name) && (
             <div className="flex text-[#64748B] justify-between items-center">
-              <span>County</span>
+              <span className="flex items-center gap-2">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                County
+              </span>
               <span>{business.county.name}</span>
             </div>
           )}
           {hasValue(business.category?.name) && (
             <div className="flex text-[#64748B] justify-between items-center">
-              <span>Primary Business Type</span>
+              <span className="flex items-center gap-2">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                Primary Business Type
+              </span>
               <span>{business.category.name}</span>
             </div>
           )}
           {hasValue(business.listing_type) && (
             <div className="flex text-[#64748B] justify-between items-center">
-              <span>Listing Type</span>
+              <span className="flex items-center gap-2">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                Listing Type
+              </span>
               <span>{business.listing_type}</span>
             </div>
           )}
           {hasValue(business.subcategory?.name) && (
             <div className="flex text-[#64748B] justify-between items-center">
-              <span>Secondary Business Types</span>
+              <span className="flex items-center gap-2">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+                Secondary Business Types
+              </span>
               <span>{business.subcategory.name}</span>
             </div>
           )}
           {hasValue(business.year_established) && (
             <div className="flex text-[#64748B] justify-between items-center">
-              <span>Year Established</span>
+              <span className="flex items-center gap-2">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                Year Established
+              </span>
               <span>{business.year_established}</span>
             </div>
           )}
@@ -313,7 +337,10 @@ const BusinessDetail = ({ params }) => {
       )}
       {business.is_seller_financing_available == 1 && (
         <div className="flex text-[#64748B] justify-between items-center">
-          <span>Seller Financing</span>
+          <span className="flex items-center gap-2">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="5" x2="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>
+            Seller Financing
+          </span>
           <span>Available</span>
         </div>
       )}

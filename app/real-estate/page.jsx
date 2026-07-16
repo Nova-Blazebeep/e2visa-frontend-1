@@ -342,12 +342,10 @@ function RealEstate() {
 
         {/* ── Map — always visible after filters ── */}
         <div className="mb-10 max-w-6xl mx-auto">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-xl md:text-2xl font-bold text-[#40433F]">Listings on Map</h2>
-            <span className="text-sm text-gray-500">
-              {realEstates.filter(l => l.latitude && l.longitude).length} of {realEstates.length} listings pinned
-            </span>
-          </div>
+          <h2 className="text-2xl md:text-3xl font-bold text-[#40433F] text-center mb-2">Listings on Map</h2>
+          <p className="text-sm text-gray-500 text-center mb-4">
+            {realEstates.filter(l => l.latitude && l.longitude).length} of {realEstates.length} listings pinned
+          </p>
           <div className="rounded-xl overflow-hidden shadow-md border border-gray-200">
             {loadingRealEstate ? (
               <div className="flex items-center justify-center bg-gray-100" style={{ height: '520px' }}>

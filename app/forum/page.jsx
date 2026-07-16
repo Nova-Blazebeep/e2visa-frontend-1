@@ -318,13 +318,23 @@ function ForumContent() {
         {/* Composer / Sign-in CTA */}
         {token ? (
           <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 mb-8">
-            <div className="flex items-center gap-2.5 mb-5">
-              <div className="w-9 h-9 rounded-full bg-[#0A3161]/8 flex items-center justify-center flex-shrink-0">
-                <svg width="18" height="18" fill="none" stroke="#0A3161" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                  <path d="M16.862 3.487a2.06 2.06 0 0 1 2.915 2.914l-9.193 9.193a2 2 0 0 1-.707.464l-4.243 1.415a.5.5 0 0 1-.632-.632l1.415-4.243a2 2 0 0 1 .464-.707l9.193-9.193z" />
-                </svg>
+            <div className="flex flex-col items-center text-center mb-5">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-full bg-[#0A3161]/8 flex items-center justify-center flex-shrink-0">
+                  <svg width="18" height="18" fill="none" stroke="#0A3161" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                    <line x1="12" y1="7" x2="12" y2="13" />
+                    <line x1="9" y1="10" x2="15" y2="10" />
+                  </svg>
+                </div>
+                <h2 className="text-lg font-bold text-[#0A3161]">Start a Discussion</h2>
               </div>
-              <h2 className="text-lg font-bold text-[#0A3161]">Start a Discussion</h2>
+              <p className="text-sm text-gray-500 mt-1.5 flex items-center justify-center gap-1.5">
+                <svg width="14" height="14" fill="none" stroke="#2EC4B6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" className="flex-shrink-0">
+                  <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+                </svg>
+                Ask a question or share your experience — the community and our experts are here to help.
+              </p>
             </div>
 
             <div className="mb-4">

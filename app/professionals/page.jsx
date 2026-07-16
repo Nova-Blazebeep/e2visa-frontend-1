@@ -163,7 +163,7 @@ function Professionals() {
                 {paginatedProfessionals.map((pro) => (
                   <Link href={`/professional/${pro.id}`} key={pro.id} className="block relative h-full">
                     <div className="h-full bg-white rounded-lg border border-[#40433F] p-6 hover:shadow-lg transition-shadow flex flex-col justify-between">
-                      <span className="absolute top-2 right-2 bg-[#0A3161] text-white text-xs font-semibold px-3 py-1 rounded-full shadow-sm select-none cursor-pointer">
+                      <span className="absolute top-2 right-2 bg-[#40433F] text-white text-xs font-semibold px-3 py-1 rounded-full shadow-sm select-none cursor-pointer">
                         Contact
                       </span>
                       <div className="flex items-start space-x-4">

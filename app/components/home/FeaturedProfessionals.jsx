@@ -121,9 +121,12 @@ const FeaturedProfessionals = () => {
   return (
     <div className="xl:py-[92px] py-10 mt-8 bg-white">
       <div className="container mx-auto px-4">
-        <h1 className="text-center xl:text-3xl text-[#40433F] text-2xl font-bold mb-20">
+        <h1 className="text-center xl:text-3xl text-[#40433F] text-2xl font-bold mb-3">
           Professionals
         </h1>
+        <p className="text-center text-gray-500 text-sm md:text-base mb-16 max-w-2xl mx-auto">
+          Trusted brokers, attorneys, and advisors — the right expert for every step of your journey.
+        </p>
 
         {loading ? (
           <LoadingSpinner />
