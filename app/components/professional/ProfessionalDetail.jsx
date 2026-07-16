@@ -5,7 +5,10 @@ import Image from 'next/image';
 import { toast } from 'react-toastify';
 import BusinessContactForm from '../../buy-business/[id]/BusinessContactForm';
 
+const STATES_PREVIEW_COUNT = 5;
+
 const ProfessionalDetail = ({ professional }) => {
+  const [showAllStates, setShowAllStates] = useState(false);
   const [formData, setFormData] = useState({
     fullName: '',
     phoneNumber: '',
@@ -145,19 +148,42 @@ const ProfessionalDetail = ({ professional }) => {
                   </svg>
                 </a>
 
-                {professional.user_information?.licensed_states?.length > 0 && (
-                  <div className="flex flex-wrap items-center gap-2 mt-1">
-                    <span className="text-sm text-gray-500">Licensed in:</span>
-                    {professional.user_information.licensed_states.slice(0, 3).map((state) => (
-                      <span
-                        key={state}
-                        className="bg-[#2EC4B6]/10 text-[#2EC4B6] border border-[#2EC4B6]/40 text-xs font-medium px-3 py-1 rounded-full"
-                      >
-                        {state}
-                      </span>
-                    ))}
-                  </div>
-                )}
+                {professional.user_information?.licensed_states?.length > 0 && (() => {
+                  const states = [...new Set(professional.user_information.licensed_states)];
+                  const allStates = states.length >= 50;
+                  const visibleStates = showAllStates ? states : states.slice(0, STATES_PREVIEW_COUNT);
+                  const hiddenCount = states.length - STATES_PREVIEW_COUNT;
+                  return (
+                    <div className="flex flex-wrap items-center gap-2 mt-1">
+                      <span className="text-sm text-gray-500">Licensed in:</span>
+                      {allStates ? (
+                        <span className="bg-[#2EC4B6]/10 text-[#2EC4B6] border border-[#2EC4B6]/40 text-xs font-medium px-3 py-1 rounded-full">
+                          All 50 states
+                        </span>
+                      ) : (
+                        <>
+                          {visibleStates.map((state) => (
+                            <span
+                              key={state}
+                              className="bg-[#2EC4B6]/10 text-[#2EC4B6] border border-[#2EC4B6]/40 text-xs font-medium px-3 py-1 rounded-full"
+                            >
+                              {state}
+                            </span>
+                          ))}
+                          {hiddenCount > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => setShowAllStates(!showAllStates)}
+                              className="bg-[#0A3161]/5 text-[#0A3161] border border-[#0A3161]/20 hover:bg-[#0A3161]/10 text-xs font-semibold px-3 py-1 rounded-full transition-colors"
+                            >
+                              {showAllStates ? 'Show less' : `+${hiddenCount} more`}
+                            </button>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           </div>

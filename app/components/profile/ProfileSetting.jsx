@@ -72,10 +72,6 @@ const ProfileSetting = () => {
       if (current.includes(stateName)) {
         return { ...prev, licensed_states: current.filter(s => s !== stateName) };
       }
-      if (current.length >= 3) {
-        toast.info('You can select up to 3 licensed states.', { position: 'top-right' });
-        return prev;
-      }
       return { ...prev, licensed_states: [...current, stateName] };
     });
   };
@@ -187,9 +183,23 @@ const ProfileSetting = () => {
 
         {/* Licensed States */}
         <div className="w-full max-w-[540px]">
-          <label className="block text-sm text-[#1E1E1E] font-medium mb-2">
-            Licensed States <span className="text-gray-400 font-normal">(select up to 3)</span>
-          </label>
+          <div className="flex items-center justify-between mb-2">
+            <label className="block text-sm text-[#1E1E1E] font-medium">
+              Licensed States
+            </label>
+            <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={formData.licensed_states.length === US_STATES.length}
+                onChange={(e) => setFormData(prev => ({
+                  ...prev,
+                  licensed_states: e.target.checked ? [...US_STATES] : []
+                }))}
+                className="accent-[#2EC4B6]"
+              />
+              Select all states
+            </label>
+          </div>
           {formData.licensed_states.length > 0 && (
             <div className="flex flex-wrap gap-2 mb-3">
               {formData.licensed_states.map(s => (
@@ -203,12 +213,10 @@ const ProfileSetting = () => {
           <div className="border border-[#1B263B] rounded-xl p-3 max-h-48 overflow-y-auto grid grid-cols-2 gap-1">
             {US_STATES.map(s => {
               const selected = formData.licensed_states.includes(s);
-              const disabled = !selected && formData.licensed_states.length >= 3;
               return (
-                <label key={s} className={`flex items-center gap-2 px-2 py-1 rounded cursor-pointer text-sm ${disabled ? 'opacity-40 cursor-not-allowed' : 'hover:bg-gray-50'}`}>
+                <label key={s} className="flex items-center gap-2 px-2 py-1 rounded cursor-pointer text-sm hover:bg-gray-50">
                   <input
                     type="checkbox" checked={selected}
-                    disabled={disabled}
                     onChange={() => toggleState(s)}
                     className="accent-[#2EC4B6]"
                   />
@@ -217,7 +225,7 @@ const ProfileSetting = () => {
               );
             })}
           </div>
-          <p className="text-xs text-gray-400 mt-1">{formData.licensed_states.length}/3 selected</p>
+          <p className="text-xs text-gray-400 mt-1">{formData.licensed_states.length} selected</p>
         </div>
 
         <button

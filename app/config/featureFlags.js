@@ -4,4 +4,4 @@
 
 // Forum is fully built and functional, but hidden behind a "Coming Soon"
 // placeholder until the client is ready to show it publicly.
-export const FORUM_UNDER_DEVELOPMENT = true;
+export const FORUM_UNDER_DEVELOPMENT = false;

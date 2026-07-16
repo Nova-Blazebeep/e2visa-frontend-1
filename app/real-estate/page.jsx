@@ -341,7 +341,7 @@ function RealEstate() {
         </div>
 
         {/* ── Map — always visible after filters ── */}
-        <div className="mb-10">
+        <div className="mb-10 max-w-6xl mx-auto">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-xl md:text-2xl font-bold text-[#40433F]">Listings on Map</h2>
             <span className="text-sm text-gray-500">

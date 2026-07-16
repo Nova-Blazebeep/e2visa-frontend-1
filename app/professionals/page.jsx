@@ -196,16 +196,31 @@ function Professionals() {
                             {[pro.user_information?.state_name, pro.user_information?.country_name].filter(Boolean).join(', ') || ''}
                           </p>
                           <p className="lg:text-sm text-xs text-gray-600">{pro.role}</p>
-                          {pro.user_information?.licensed_states?.length > 0 && (
-                            <div className="flex flex-wrap gap-1 mt-2">
-                              <span className="text-xs text-gray-500 mr-1 self-center">Licensed in:</span>
-                              {pro.user_information.licensed_states.slice(0, 3).map((state) => (
-                                <span key={state} className="bg-[#2EC4B6]/10 text-[#2EC4B6] border border-[#2EC4B6]/30 text-xs font-medium px-2 py-0.5 rounded-full">
-                                  {state}
-                                </span>
-                              ))}
-                            </div>
-                          )}
+                          {pro.user_information?.licensed_states?.length > 0 && (() => {
+                            const states = [...new Set(pro.user_information.licensed_states)];
+                            const allStates = states.length >= 50;
+                            return (
+                              <div className="flex flex-wrap gap-1 mt-2">
+                                <span className="text-xs text-gray-500 mr-1 self-center">Licensed in:</span>
+                                {allStates ? (
+                                  <span className="bg-[#2EC4B6]/10 text-[#2EC4B6] border border-[#2EC4B6]/30 text-xs font-medium px-2 py-0.5 rounded-full">
+                                    All 50 states
+                                  </span>
+                                ) : (
+                                  <>
+                                    {states.slice(0, 3).map((state) => (
+                                      <span key={state} className="bg-[#2EC4B6]/10 text-[#2EC4B6] border border-[#2EC4B6]/30 text-xs font-medium px-2 py-0.5 rounded-full">
+                                        {state}
+                                      </span>
+                                    ))}
+                                    {states.length > 3 && (
+                                      <span className="text-xs text-gray-500 self-center">…</span>
+                                    )}
+                                  </>
+                                )}
+                              </div>
+                            );
+                          })()}
                           {(pro.user_information?.about || pro.about) && (
                             <p className="text-xs text-gray-500 mt-2 leading-relaxed">
                               {(pro.user_information?.about || pro.about).length > 150

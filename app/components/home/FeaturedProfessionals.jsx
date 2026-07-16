@@ -25,10 +25,16 @@ const ProCard = ({ pro, onClick, backendUrl }) => {
   const [imgFailed, setImgFailed] = useState(false);
   const showPlaceholder = !imageUrl || imgFailed;
 
-  const licensedStates = pro.user_information?.licensed_states;
-  const licensedLabel = Array.isArray(licensedStates) && licensedStates.length > 0
-    ? licensedStates.join(', ')
-    : null;
+  const licensedStates = Array.isArray(pro.user_information?.licensed_states)
+    ? [...new Set(pro.user_information.licensed_states)]
+    : [];
+  const licensedLabel = licensedStates.length >= 50
+    ? 'All 50 states'
+    : licensedStates.length > 3
+      ? licensedStates.slice(0, 3).join(', ') + '…'
+      : licensedStates.length > 0
+        ? licensedStates.join(', ')
+        : null;
 
   return (
     <div
@@ -66,11 +72,11 @@ const ProCard = ({ pro, onClick, backendUrl }) => {
       </div>
 
       {/* Info */}
-      <div className="p-4 flex flex-col flex-1 justify-between text-left">
-        <h2 className="text-sm font-bold text-[#1a1a1a] leading-5 line-clamp-1 mb-3" title={pro.name}>
+      <div className="p-4 flex flex-col flex-1 text-left">
+        <h2 className="text-sm font-bold text-[#1a1a1a] leading-5 line-clamp-1 mb-2" title={pro.name}>
           {pro.name}
         </h2>
-        <div className="space-y-1.5 mt-auto">
+        <div className="space-y-1.5">
           {pro.role && (
             <div className="flex items-center gap-1.5">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0A3161" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
