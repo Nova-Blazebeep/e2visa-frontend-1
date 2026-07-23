@@ -48,9 +48,10 @@ const ProfileSidebar = ({ activeTab, setActiveTab }) => {
 
   const handleLogout = () => {
     setShowLogoutConfirm(false);
-    logout();
+    logout(); // removes 'user' and 'token'
     if (typeof window !== 'undefined') {
-      localStorage.clear();
+      // Clear session only — keep per-user saved listings, searches, notifications
+      localStorage.removeItem('userDetail');
     }
     router.push('/signin');
   };

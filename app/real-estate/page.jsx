@@ -1,12 +1,15 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import Image from 'next/image';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import SaveListingButton from '../components/common/SaveListingButton';
 import { useSearchParams } from 'next/navigation';
 import { formatRealEstatePrice, getSqftLabel } from '../utils/priceRange';
+import { useAuth } from '@/app/context/AuthContext';
+import { recordSearch } from '@/app/utils/searchHistory';
 
 const RealEstateMap = dynamic(() => import('../components/real-estate/RealEstateMap'), { ssr: false });
 
@@ -38,17 +41,31 @@ function RealEstate() {
   const [states, setStates] = useState([]);
   const [counties, setCounties] = useState([]);
 
-  // Row 1 filters
+  const { user } = useAuth();
+
+  // Row 1 filters (simple values initialize straight from deep-link params;
+  // country/state/county cascade below once their lists load)
   const [filterCountry, setFilterCountry] = useState('');
   const [filterState, setFilterState] = useState('');
   const [filterCounty, setFilterCounty] = useState('');
-  const [filterPropertyType, setFilterPropertyType] = useState('');
+  const [filterPropertyType, setFilterPropertyType] = useState(searchParams.get('property_type') || '');
 
   // Row 2 filters
-  const [filterSqft, setFilterSqft] = useState('');
-  const [filterRooms, setFilterRooms] = useState('');
-  const [filterBaths, setFilterBaths] = useState('');
-  const [filterPriceRange, setFilterPriceRange] = useState('');
+  const [filterSqft, setFilterSqft] = useState(searchParams.get('sqft') || '');
+  const [filterRooms, setFilterRooms] = useState(searchParams.get('rooms') || '');
+  const [filterBaths, setFilterBaths] = useState(searchParams.get('baths') || '');
+  const [filterPriceRange, setFilterPriceRange] = useState(searchParams.get('price') || '');
+
+  // Deep-link params for saved-search re-runs
+  const initialCountryId = searchParams.get('country_id') || '';
+  const initialStateId = searchParams.get('state_id') || '';
+  const initialCountyId = searchParams.get('county_id') || '';
+  const pendingDeepLink = useRef({ state: initialStateId, county: initialCountyId });
+  const hasDeepLink = Boolean(
+    initialCountryId || initialStateId || initialCountyId ||
+    searchParams.get('property_type') || searchParams.get('sqft') ||
+    searchParams.get('rooms') || searchParams.get('baths') || searchParams.get('price')
+  );
 
   const roomOptions = ['1+', '2+', '3+', '4+', '5+', '6+'];
   const bathOptions = ['1+', '2+', '3+', '4+', '5+', '6+'];
@@ -101,6 +118,30 @@ function RealEstate() {
     setFilterCounty('');
   }, [filterState, states]);
 
+  // Deep-link: apply location ids as their option lists load
+  useEffect(() => {
+    if (!initialCountryId || filterCountry || !countries.length) return;
+    if (countries.some(c => String(c.id) === String(initialCountryId))) {
+      setFilterCountry(String(initialCountryId));
+    }
+  }, [initialCountryId, countries, filterCountry]);
+
+  useEffect(() => {
+    const pending = pendingDeepLink.current;
+    if (pending.state && states.some(s => String(s.id) === String(pending.state))) {
+      setFilterState(String(pending.state));
+      pending.state = '';
+    }
+  }, [states]);
+
+  useEffect(() => {
+    const pending = pendingDeepLink.current;
+    if (pending.county && counties.some(c => String(c.id) === String(pending.county))) {
+      setFilterCounty(String(pending.county));
+      pending.county = '';
+    }
+  }, [counties]);
+
   const handleSearch = () => {
     let filtered = [...allRealEstates];
 
@@ -142,7 +183,48 @@ function RealEstate() {
 
     setRealEstates(filtered);
     setCurrentPage(1);
+
+    // Record in "My Searches" (signed-in users, at least one filter applied)
+    const anyFilter = filterCountry || filterState || filterCounty || filterPropertyType ||
+      filterRooms || filterBaths || filterSqft || filterPriceRange;
+    if (user && anyFilter) {
+      const stateName = states.find(s => String(s.id) === String(filterState))?.name;
+      const countryName = countries.find(c => String(c.id) === String(filterCountry))?.name;
+      const params = new URLSearchParams();
+      if (filterCountry) params.set('country_id', filterCountry);
+      if (filterState) params.set('state_id', filterState);
+      if (filterCounty) params.set('county_id', filterCounty);
+      if (filterPropertyType) params.set('property_type', filterPropertyType);
+      if (filterRooms) params.set('rooms', filterRooms);
+      if (filterBaths) params.set('baths', filterBaths);
+      if (filterSqft) params.set('sqft', filterSqft);
+      if (filterPriceRange) params.set('price', filterPriceRange);
+      // Keep the full dropdown value readable, e.g. "House (For Rent/Lease)"
+      const typeLabel = filterPropertyType
+        .replace(/\s*\[for sale\]\s*$/i, ' (For Sale)')
+        .replace(/\s*\[for rent\/lease\]\s*$/i, ' (For Rent/Lease)');
+      recordSearch({
+        type: 'real_estate',
+        label: `Real Estate in ${stateName || countryName || 'All Locations'}`,
+        meta: [
+          typeLabel,
+          filterPriceRange,
+          filterRooms && `${filterRooms} beds`,
+          filterBaths && `${filterBaths} baths`,
+          filterSqft,
+        ].filter(Boolean).join(' · ') || 'All Properties',
+        url: `/real-estate?${params.toString()}`,
+        resultCount: filtered.length,
+      });
+    }
   };
+
+  // Re-run the search as each deep-linked filter lands
+  useEffect(() => {
+    if (!hasDeepLink || !allRealEstates.length) return;
+    handleSearch();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allRealEstates, filterCountry, filterState, filterCounty]);
 
   const handleReset = () => {
     setFilterCountry(''); setFilterState(''); setFilterCounty('');
@@ -398,6 +480,7 @@ function RealEstate() {
                             Verified
                           </div>
                         )}
+                        <SaveListingButton listing={estate} className="absolute top-2.5 right-2.5 z-30" />
                       </div>
                       <div className="p-4 flex flex-col flex-1">
                         <div className={`text-xl font-extrabold mb-1 ${priceLabel === 'Contact for Price' ? 'text-gray-400' : 'text-[#1a1a1a]'}`}>

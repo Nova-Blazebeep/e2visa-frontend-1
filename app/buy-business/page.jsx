@@ -1,10 +1,13 @@
 'use client';
 
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import SaveListingButton from '../components/common/SaveListingButton';
 import { useSearchParams } from 'next/navigation';
+import { useAuth } from '@/app/context/AuthContext';
+import { recordSearch } from '@/app/utils/searchHistory';
 
 // Builds a windowed page-number list with ellipses, e.g. [1, '...', 4, 5, 6, '...', 12]
 function getPageNumbers(currentPage, totalPages, windowSize = 1) {
@@ -23,8 +26,14 @@ function getPageNumbers(currentPage, totalPages, windowSize = 1) {
 
 function BuyBusiness() {
   const searchParams = useSearchParams();
+  const { user } = useAuth();
   const initialCategory = searchParams.get('category_id') || '';
   const initialCountryParam = searchParams.get('country') || '';
+  // Deep-link params (used by "My Searches" re-run in the dashboard)
+  const initialCountryId = searchParams.get('country_id') || '';
+  const initialStateId = searchParams.get('state_id') || '';
+  const initialCountyId = searchParams.get('county_id') || '';
+  const initialSubCategoryId = searchParams.get('sub_category_id') || '';
 
   const [allBusinesses, setAllBusinesses] = useState([]);
   const [businesses, setBusinesses] = useState([]);
@@ -99,6 +108,49 @@ function BuyBusiness() {
     if (match) setFilterCountry(String(match.id));
   }, [initialCountryParam, countries, filterCountry]);
 
+  // Deep-link support for saved searches: apply ids as their option lists load.
+  // Cascades reset child filters, so each level waits for its list to populate.
+  const pendingDeepLink = useRef({ state: initialStateId, county: initialCountyId, sub: initialSubCategoryId });
+  const hasDeepLink = Boolean(initialCountryId || initialStateId || initialCountyId || initialSubCategoryId);
+
+  useEffect(() => {
+    if (!initialCountryId || filterCountry || !countries.length) return;
+    if (countries.some(c => String(c.id) === String(initialCountryId))) {
+      setFilterCountry(String(initialCountryId));
+    }
+  }, [initialCountryId, countries, filterCountry]);
+
+  useEffect(() => {
+    const pending = pendingDeepLink.current;
+    if (pending.state && states.some(s => String(s.id) === String(pending.state))) {
+      setFilterState(String(pending.state));
+      pending.state = '';
+    }
+  }, [states]);
+
+  useEffect(() => {
+    const pending = pendingDeepLink.current;
+    if (pending.county && counties.some(c => String(c.id) === String(pending.county))) {
+      setFilterCounty(String(pending.county));
+      pending.county = '';
+    }
+  }, [counties]);
+
+  useEffect(() => {
+    const pending = pendingDeepLink.current;
+    if (pending.sub && subCategories.some(s => String(s.id) === String(pending.sub))) {
+      setFilterSubCategory(String(pending.sub));
+      pending.sub = '';
+    }
+  }, [subCategories]);
+
+  // Re-run the search as each deep-linked filter lands
+  useEffect(() => {
+    if (!hasDeepLink || !allBusinesses.length) return;
+    handleSearch();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allBusinesses, filterCountry, filterState, filterCounty, filterCategory, filterSubCategory]);
+
   // Fetch all business listings once on mount
   useEffect(() => {
     const fetchAllBusinesses = async () => {
@@ -141,6 +193,28 @@ function BuyBusiness() {
     if (filterSubCategory)  filtered = filtered.filter(b => String(b.sub_category_id) === String(filterSubCategory));
     setBusinesses(filtered);
     setCurrentPage(1);
+
+    // Record in "My Searches" (signed-in users, at least one filter applied)
+    if (user && (filterCountry || filterState || filterCounty || filterCategory || filterSubCategory)) {
+      const stateName = states.find(s => String(s.id) === String(filterState))?.name;
+      const countryName = countries.find(c => String(c.id) === String(filterCountry))?.name;
+      const countyName = counties.find(c => String(c.id) === String(filterCounty))?.name;
+      const categoryName = categories.find(c => String(c.id) === String(filterCategory))?.name;
+      const subCategoryName = subCategories.find(s => String(s.id) === String(filterSubCategory))?.name;
+      const params = new URLSearchParams();
+      if (filterCountry) params.set('country_id', filterCountry);
+      if (filterState) params.set('state_id', filterState);
+      if (filterCounty) params.set('county_id', filterCounty);
+      if (filterCategory) params.set('category_id', filterCategory);
+      if (filterSubCategory) params.set('sub_category_id', filterSubCategory);
+      recordSearch({
+        type: 'business',
+        label: `Businesses in ${stateName || countryName || 'All Locations'}`,
+        meta: [categoryName, subCategoryName, countyName].filter(Boolean).join(' · ') || 'All Types',
+        url: `/buy-business?${params.toString()}`,
+        resultCount: filtered.length,
+      });
+    }
   };
 
   // Auto-apply filters carried in via URL (?category_id=, ?country=) once data is ready
@@ -285,6 +359,7 @@ function BuyBusiness() {
                         alt={business.listing_heading || 'Business Listing'}
                         className="w-full h-full object-cover"
                       />
+                      <SaveListingButton listing={business} className="absolute top-2.5 left-2.5 z-30" />
                     </div>
                     <div className="p-4 flex flex-col flex-1 justify-between">
                       <h2 className="text-sm font-bold text-[#1a1a1a] leading-5 line-clamp-2 mb-3 min-h-[40px]">

@@ -6,6 +6,7 @@ import { useState, useRef, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import ProfileDropdown from '../common/ProfileDropdown';
 import RoleIcon from '../common/RoleIcon';
+import NotificationBell from '../common/NotificationBell';
 import { useAuth } from '@/app/context/AuthContext';
 
 const Header = () => {
@@ -166,20 +167,23 @@ const Header = () => {
               >
                 Contact Us
               </Link> */}
-              <div className="flex items-center">
+              <div className="flex items-center gap-2">
                 {user ? (
-                  <ProfileDropdown user={user} />
+                  <div className="flex items-center gap-1">
+                    <NotificationBell />
+                    <ProfileDropdown user={user} />
+                  </div>
                 ) : (
                   <>
-                    <Link 
+                    <Link
                       href="/signup-options"
-                      className="xl:text-sm text-xs px-3 md:px-[15px] py-2 xl:py-3 text- rounded-lg bg-white hover:bg-gray-100 mr-2"
+                      className="xl:text-sm text-xs min-w-[84px] text-center px-3 py-2 xl:py-3 rounded-lg bg-white hover:bg-gray-100 transition-colors"
                     >
                       Sign Up
                     </Link>
-                    <Link 
+                    <Link
                       href="/signin"
-                      className="xl:text-sm text-xs px-3 md:px-[15px] py-2 xl:py-3 text- rounded-lg bg-white hover:bg-gray-100"
+                      className="xl:text-sm text-xs min-w-[84px] text-center px-3 py-2 xl:py-3 rounded-lg bg-white hover:bg-gray-100 transition-colors"
                     >
                       Sign In
                     </Link>

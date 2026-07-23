@@ -5,6 +5,7 @@ import { AuthProvider } from './context/AuthContext';
 import { Inter } from 'next/font/google';
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
+import MarketplaceAssistant from './components/common/MarketplaceAssistant';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -18,6 +19,7 @@ export default function RootLayout({ children }) {
           <Header />
           <main>{children}</main>
           <Footer />
+          <MarketplaceAssistant />
         </AuthProvider>
         <ToastContainer toastClassName="custom-toast" />
       </body>

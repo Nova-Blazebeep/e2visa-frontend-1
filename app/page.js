@@ -12,7 +12,7 @@ export default function Home() {
       <WhatSetsUsApart />
       <ListingsTabs />
       {/* <NewListing /> */}
-      <FeaturedProfessionals /> 
+      <FeaturedProfessionals />
     </div>
   );
 }
