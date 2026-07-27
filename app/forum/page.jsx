@@ -269,7 +269,7 @@ function ForumContent() {
       <div className="relative h-[300px]">
         <div className="absolute inset-0 z-[1]">
           <Image
-            src="/images/forum-banner.png"
+            src="/images/forum-qa-bg.jpg"
             alt="Forum & Articles"
             fill
             className="object-cover"

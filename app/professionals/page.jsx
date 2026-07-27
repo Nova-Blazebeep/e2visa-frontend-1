@@ -139,7 +139,7 @@ function Professionals() {
       {/* Hero */}
       <div className="relative h-[300px] flex items-center justify-center">
         <div className="absolute inset-0 z-[1]">
-          <Image src="/images/image.png" alt="Find a Professional" fill className="object-cover" />
+          <Image src="/images/professionals-banner.jpg" alt="Find a Professional" fill className="object-cover" />
           <div className="absolute inset-0 bg-black/50 z-[5]"></div>
         </div>
         <div className="relative z-10 text-center">

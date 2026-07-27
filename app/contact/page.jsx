@@ -104,7 +104,7 @@ export default function Contact() {
       <div className="">
         <div className="grid grid-cols-1 md:grid-cols-2 ">
           {/* Left Side - Contact Information */}
-          <div className="p-8 flex flex-col items-center justify-center !text-white bg-[url('https://images.unsplash.com/photo-1423666639041-f56000c27a9a?auto=format&fit=crop&w=1200&q=80')] bg-cover bg-center relative ">
+          <div className="p-8 flex flex-col items-center justify-center !text-white bg-[url('/images/contact-banner.jpg')] bg-cover bg-center relative ">
             <div className="absolute inset-0 bg-[#1B263B99] z-0" />
             <div className="relative w-[430px]  z-10 p-8">
 

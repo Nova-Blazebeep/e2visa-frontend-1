@@ -130,7 +130,7 @@ export default function Articles() {
       <div className="relative h-[300px] ">
         <div className="absolute inset-0 z-[1]">
           <Image
-            src="https://images.unsplash.com/photo-1481627834876-b7833e8f5570?auto=format&fit=crop&w=1920&q=80"
+            src="/images/articles-banner.jpg"
             alt="Articles"
             fill
             className="object-cover"

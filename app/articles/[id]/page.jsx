@@ -56,7 +56,7 @@ export default function BlogDetail({ params }) {
       <div className="relative h-[300px] ">
         <div className="absolute inset-0 z-[1]">
         <Image
-            src="/images/blog/1.png"
+            src="/images/articles-banner.jpg"
             alt="Listings Header"
             fill
             className="object-cover"
