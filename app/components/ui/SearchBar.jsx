@@ -18,7 +18,10 @@ const SearchBar = ({ activeTab }) => {
   useEffect(() => {
     const fetchCountries = async () => {
       try {
-        const res = await fetch(process.env.NEXT_PUBLIC_API_URL + '/api/countries/list');
+        // "light" skips the nested states/counties tree (~550KB across all
+        // countries) — this widget only needs id+name for the Country dropdown
+        // and fetches states separately once a country is picked.
+        const res = await fetch(process.env.NEXT_PUBLIC_API_URL + '/api/countries/list?light=1');
         const data = await res.json();
         if (res.ok && data.result) {
           setCountries(data.result);
@@ -52,12 +55,10 @@ const SearchBar = ({ activeTab }) => {
     }
     const fetchStates = async () => {
       try {
-        const country = countries.find(c => c.name === selectedCountry);
-        if (!country) return;
         const res = await fetch(process.env.NEXT_PUBLIC_API_URL + '/api/states/list', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ country_id: country.id }),
+          body: JSON.stringify({ country_id: selectedCountry }),
         });
         const data = await res.json();
         if (res.ok && data.result) {
@@ -70,7 +71,7 @@ const SearchBar = ({ activeTab }) => {
       }
     };
     fetchStates();
-  }, [selectedCountry, activeTab, countries]);
+  }, [selectedCountry, activeTab]);
 
   // Reset selections when tab changes
   useEffect(() => {
@@ -86,14 +87,15 @@ const SearchBar = ({ activeTab }) => {
     else if (activeTab === 'estate') path = '/real-estate';
     else if (activeTab === 'professional') path = '/professionals';
 
-    // Build query params
+    // Build query params — both target pages key their deep-link cascade off
+    // numeric country_id/state_id, not names.
     const params = new URLSearchParams();
     if (activeTab === 'business') {
       if (selectedIndustry) params.append('category_id', selectedIndustry);
-      if (selectedCountry) params.append('country', selectedCountry);
+      if (selectedCountry) params.append('country_id', selectedCountry);
     } else if (activeTab === 'estate') {
-      if (selectedCountry) params.append('country', selectedCountry);
-      if (selectedState) params.append('state', selectedState);
+      if (selectedCountry) params.append('country_id', selectedCountry);
+      if (selectedState) params.append('state_id', selectedState);
     }
 
     // Navigate with params
@@ -115,7 +117,7 @@ const SearchBar = ({ activeTab }) => {
                 >
                   <option value="">Country</option>
                   {countries.map((country) => (
-                    <option key={country.id} value={country.name} className="text-black px-3">
+                    <option key={country.id} value={country.id} className="text-black px-3">
                       {country.name}
                     </option>
                   ))}
@@ -135,7 +137,7 @@ const SearchBar = ({ activeTab }) => {
                 >
                   <option value="">State</option>
                   {states.map((state) => (
-                    <option key={state.id} value={state.name} className="text-black px-3">
+                    <option key={state.id} value={state.id} className="text-black px-3">
                       {state.name}
                     </option>
                   ))}
@@ -178,7 +180,7 @@ const SearchBar = ({ activeTab }) => {
                 >
                   <option value="">Countries</option>
                   {countries.map((country) => (
-                    <option key={country.id} value={country.name} className="text-black px-3">
+                    <option key={country.id} value={country.id} className="text-black px-3">
                       {country.name}
                     </option>
                   ))}

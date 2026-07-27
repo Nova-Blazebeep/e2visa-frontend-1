@@ -249,7 +249,7 @@ const SignUp = () => {
         body: form,
       });
       const data = await res.json();
-      if (res.ok && data.message && data.message.toLowerCase().includes('success')) {
+      if (res.ok) {
         setRegisterSuccess(data.message);
         toast.success(data.message, { position: 'top-right' });
         setTimeout(() => {

@@ -182,7 +182,7 @@ const Footer = () => {
             </div>
 
             {/* Newsletter & Contact Info */}
-            <div className="space-y-6 flex-1 min-w-[250px] text-sm max-w-[300px]">
+            <div className="space-y-6 flex-1 min-w-[250px] text-sm max-w-[300px] md:ml-auto">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 shrink-0 flex items-center justify-center bg-white rounded-full">
                   <Image

@@ -457,6 +457,8 @@ const BusinessDetail = ({ params }) => {
               }
               alt={business.listing_heading}
               className="w-full h-full object-cover"
+              sizes="100vw"
+              quality={90}
               onLoad={() => setImageLoading(false)}
               onError={() => setImageLoading(false)}
               style={imageLoading ? { visibility: 'hidden' } : {}}
@@ -511,6 +513,8 @@ const BusinessDetail = ({ params }) => {
                 }
                 alt={business.listing_heading}
                 className="w-full h-full object-cover"
+                sizes="(min-width: 1024px) 50vw, 100vw"
+                quality={90}
                 onLoad={() => setImageLoading(false)}
                 onError={() => setImageLoading(false)}
                 style={imageLoading ? { visibility: 'hidden' } : {}}

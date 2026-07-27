@@ -16,16 +16,30 @@ function shuffle(arr) {
   return a;
 }
 
+// Role names that read oddly with "a"/"an" in front — render with no article instead.
+const NO_ARTICLE_ROLES = ['affiliate services', 'insurance'];
+
 function getArticle(name) {
   if (!name) return 'a';
-  const noArticle = ['affiliate services'];
-  if (noArticle.includes(name.toLowerCase())) return 'for';
+  if (NO_ARTICLE_ROLES.includes(name.toLowerCase())) return '';
   return /^[aeiou]/i.test(name.trim()) ? 'an' : 'a';
 }
+
+// Role names whose plural form isn't just "add s to the last word" —
+// e.g. both halves of a slash need pluralizing, or the role shouldn't
+// pluralize at all (a mass noun like "Insurance").
+const PLURAL_OVERRIDES = {
+  'cpa/accountant': 'CPAs/Accountants',
+  'appraiser, business/real estate': 'Appraisers, Business/Real Estate',
+  'lender/loan officer': 'Lenders/Loan Officers',
+  'insurance': 'Insurance',
+};
 
 // Make profession name plural for section heading
 function pluralize(name) {
   if (!name) return '';
+  const override = PLURAL_OVERRIDES[name.toLowerCase()];
+  if (override) return override;
   // Handle "Attorney - Immigration/Real Estate/Business" → "Attorneys - Immigration/Real Estate/Business"
   if (name.toLowerCase().startsWith('attorney')) return name.replace(/^Attorney/i, 'Attorneys');
   // Handle names ending in specific patterns
@@ -125,12 +139,12 @@ function Professionals() {
       {/* Hero */}
       <div className="relative h-[300px] flex items-center justify-center">
         <div className="absolute inset-0 z-[1]">
-          <Image src="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1920&q=80" alt="Find a Professional" fill className="object-cover" />
+          <Image src="/images/image.png" alt="Find a Professional" fill className="object-cover" />
           <div className="absolute inset-0 bg-black/50 z-[5]"></div>
         </div>
         <div className="relative z-10 text-center">
           <h1 className="text-4xl md:text-5xl text-white mb-4 max-w-3xl mx-auto leading-tight">
-            {roleName ? `Search for ${getArticle(roleName)} ${roleName}` : 'Search for a Professional to Help You Find a Business'}
+            {roleName ? `Search for ${[getArticle(roleName), roleName].filter(Boolean).join(' ')}` : 'Search for a Professional to Help You Find a Business'}
           </h1>
           <div className="flex items-center justify-center text-white">
             <span>Home</span><span className="mx-2">/</span><span>Professionals</span>
@@ -172,7 +186,7 @@ function Professionals() {
           <>
             {paginatedProfessionals.length === 0 ? (
               <div className="flex flex-col items-center justify-center pt-4 pb-10">
-                <p className="text-lg text-gray-700">No Professional That Match Your Query, Please Try Again</p>
+                <p className="text-lg text-gray-700">No Professionals That Match Your Query, Please Try Again</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:mx-28 items-stretch">

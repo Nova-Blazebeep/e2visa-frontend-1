@@ -8,6 +8,7 @@ import ProfileDropdown from '../common/ProfileDropdown';
 import RoleIcon from '../common/RoleIcon';
 import NotificationBell from '../common/NotificationBell';
 import { useAuth } from '@/app/context/AuthContext';
+import { DASHBOARD_OVERVIEW_ENABLED } from '@/app/config/featureFlags';
 
 const Header = () => {
   const { user } = useAuth();
@@ -170,7 +171,7 @@ const Header = () => {
               <div className="flex items-center gap-2">
                 {user ? (
                   <div className="flex items-center gap-1">
-                    <NotificationBell />
+                    {DASHBOARD_OVERVIEW_ENABLED && <NotificationBell />}
                     <ProfileDropdown user={user} />
                   </div>
                 ) : (

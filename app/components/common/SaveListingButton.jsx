@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 import { useAuth } from '@/app/context/AuthContext';
 import { isListingSaved, toggleSavedListing, SAVED_LISTINGS_EVENT } from '@/app/utils/savedListings';
+import { SAVE_LISTING_ENABLED } from '@/app/config/featureFlags';
 
 // Heart button shown on listing cards. Safe to place inside a <Link> —
 // clicks are stopped from navigating. Saving requires a signed-in user.
@@ -36,6 +37,10 @@ const SaveListingButton = ({ listing, className = '' }) => {
       toast.info('Removed from your saved listings', { position: 'top-right', autoClose: 2000 });
     }
   };
+
+  // Temporarily hidden per client request — see SAVE_LISTING_ENABLED in
+  // featureFlags.js. All logic above is untouched; flip the flag to restore.
+  if (!SAVE_LISTING_ENABLED) return null;
 
   return (
     <button

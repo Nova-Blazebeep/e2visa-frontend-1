@@ -11,6 +11,7 @@ import { runNotificationChecks } from '@/app/utils/notificationChecks';
 import DashboardSettings from '@/app/components/profile/DashboardSettings';
 import SaveListingButton from '@/app/components/common/SaveListingButton';
 import { USER_DETAIL_UPDATED_EVENT } from '@/app/utils/userDetail';
+import { DASHBOARD_OVERVIEW_ENABLED, DASHBOARD_SEARCH_ENABLED } from '@/app/config/featureFlags';
 import { toast } from 'react-toastify';
 
 const API = process.env.NEXT_PUBLIC_API_URL;
@@ -83,13 +84,20 @@ const Icon = ({ name, size = 18, color = DARK, className = '', fill = 'none' }) 
 );
 
 // ─── Sidebar config ──────────────────────────────────────────────────────────
-const MENU = [
+const FULL_MENU = [
   { key: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
   { key: 'saved', label: 'My Saved Listings', icon: 'heart' },
   { key: 'searches', label: 'My Searches', icon: 'search' },
   { key: 'notifications', label: 'Notifications', icon: 'bell', badgeKey: 'unread' },
   { key: 'settings', label: 'Settings', icon: 'settings' },
 ];
+
+// Temporarily hidden per client request (DASHBOARD_OVERVIEW_ENABLED in
+// featureFlags.js) — only Settings shows in the sidebar until re-enabled.
+// FULL_MENU above is untouched; flip the flag to restore everything.
+const MENU = DASHBOARD_OVERVIEW_ENABLED
+  ? FULL_MENU
+  : FULL_MENU.filter(item => item.key === 'settings');
 
 const BROWSE = [
   { label: 'Businesses', icon: 'briefcase', href: '/buy-business' },
@@ -109,9 +117,15 @@ function DashboardContent() {
   const searchParams = useSearchParams();
   const rawSection = searchParams.get('section');
   // "profile" links open Settings on its Profile tab
-  const initialSection = rawSection === 'profile'
+  const defaultSection = DASHBOARD_OVERVIEW_ENABLED ? 'dashboard' : 'settings';
+  const requestedSection = rawSection === 'profile'
     ? 'settings'
-    : VALID_SECTIONS.includes(rawSection) ? rawSection : 'dashboard';
+    : VALID_SECTIONS.includes(rawSection) ? rawSection : defaultSection;
+  // Overview temporarily disabled — bounce any deep link into a hidden
+  // section (dashboard/saved/searches/notifications) straight to Settings.
+  const initialSection = !DASHBOARD_OVERVIEW_ENABLED && requestedSection !== 'settings'
+    ? 'settings'
+    : requestedSection;
   const initialSettingsTab = rawSection === 'profile' ? 'profile' : (searchParams.get('tab') || 'profile');
   const [section, setSection] = useState(initialSection);
   const [tab, setTab] = useState('Businesses');
@@ -173,6 +187,14 @@ function DashboardContent() {
     })();
     return () => { active = false; };
   }, []);
+
+  // Overview temporarily disabled — if section ever lands on a hidden value
+  // (e.g. a deep link followed while already mounted), bounce to Settings.
+  useEffect(() => {
+    if (!DASHBOARD_OVERVIEW_ENABLED && section !== 'settings') {
+      setSection('settings');
+    }
+  }, [section]);
 
   // Dashboard is for signed-in users only
   useEffect(() => {
@@ -321,7 +343,7 @@ function DashboardContent() {
         <div className="flex-1 min-w-0">
           {/* Top bar */}
           <div className="bg-white border-b border-gray-200 px-4 md:px-8 py-4 flex items-center gap-4">
-            <div className="flex-1 max-w-xl relative">
+            <div className={`flex-1 max-w-xl relative ${DASHBOARD_SEARCH_ENABLED ? '' : 'hidden'}`}>
               <span className="absolute left-3.5 top-1/2 -translate-y-1/2 z-10">
                 <Icon name="search" size={16} color="#9ca3af" />
               </span>
@@ -389,23 +411,27 @@ function DashboardContent() {
               )}
             </div>
             <div className="flex items-center gap-3 ml-auto">
-              <button
-                onClick={() => setSection('notifications')}
-                className="relative w-10 h-10 rounded-full bg-[#F4F5F4] hover:bg-gray-200 flex items-center justify-center transition-colors"
-              >
-                <Icon name="bell" size={17} />
-                {unreadCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full text-white text-[10px] font-bold flex items-center justify-center" style={{ background: TEAL }}>{unreadCount}</span>
-                )}
-              </button>
-              <button
-                onClick={() => setSection('settings')}
-                aria-label="My profile"
-                title="My profile"
-                className="w-10 h-10 rounded-full bg-[#F4F5F4] hover:bg-gray-200 flex items-center justify-center transition-colors"
-              >
-                <Icon name="person" size={17} />
-              </button>
+              {DASHBOARD_OVERVIEW_ENABLED && (
+                <button
+                  onClick={() => setSection('notifications')}
+                  className="relative w-10 h-10 rounded-full bg-[#F4F5F4] hover:bg-gray-200 flex items-center justify-center transition-colors"
+                >
+                  <Icon name="bell" size={17} />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full text-white text-[10px] font-bold flex items-center justify-center" style={{ background: TEAL }}>{unreadCount}</span>
+                  )}
+                </button>
+              )}
+              {DASHBOARD_OVERVIEW_ENABLED && (
+                <button
+                  onClick={() => setSection('settings')}
+                  aria-label="My profile"
+                  title="My profile"
+                  className="w-10 h-10 rounded-full bg-[#F4F5F4] hover:bg-gray-200 flex items-center justify-center transition-colors"
+                >
+                  <Icon name="person" size={17} />
+                </button>
+              )}
             </div>
           </div>
 

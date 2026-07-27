@@ -11,12 +11,14 @@ import {
   setNotificationPref,
   NOTIFICATION_PREFS_EVENT,
 } from '../../utils/notificationPrefs';
+import { DASHBOARD_OVERVIEW_ENABLED } from '../../config/featureFlags';
 
 const DARK = '#40433F';
 const TEAL = '#2EC4B6';
 const TEAL_DARK = '#22A99C';
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 const STORAGE_URL = process.env.NEXT_PUBLIC_BACKEND_STORAGE_URL;
+const ABOUT_MAX_LENGTH = 150;
 
 const US_STATES = [
   'Alabama','Alaska','Arizona','Arkansas','California','Colorado','Connecticut',
@@ -48,11 +50,18 @@ const Toggle = ({ checked, onChange }) => (
 );
 
 // ─── Tabs ────────────────────────────────────────────────────────────────────
-const TABS = [
+const FULL_TABS = [
   { key: 'profile', label: 'Profile', icon: <><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></> },
   { key: 'password', label: 'Password', icon: <><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></> },
   { key: 'notifications', label: 'Notifications', icon: <><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></> },
 ];
+
+// Notifications tab temporarily hidden per client request — see
+// DASHBOARD_OVERVIEW_ENABLED in featureFlags.js. FULL_TABS above is
+// untouched; flip the flag to restore it.
+const TABS = DASHBOARD_OVERVIEW_ENABLED
+  ? FULL_TABS
+  : FULL_TABS.filter(t => t.key !== 'notifications');
 
 // ─── Profile panel ───────────────────────────────────────────────────────────
 function ProfilePanel() {
@@ -206,9 +215,26 @@ function ProfilePanel() {
 
       {/* About */}
       <div>
-        <label className={labelCls} style={{ color: DARK }}>About <span className="text-red-500">*</span></label>
-        <textarea name="about" value={form.about} onChange={change} rows={4} className={inputCls} placeholder="Tell others about yourself…" />
-        {errors.about && <p className="text-red-500 text-xs mt-1">{errors.about}</p>}
+        <div className="flex items-center justify-between mb-1.5">
+          <label className={labelCls} style={{ color: DARK, marginBottom: 0 }}>
+            About <span className="text-red-500">*</span> <span className="text-gray-400 font-normal">(max {ABOUT_MAX_LENGTH} characters)</span>
+          </label>
+        </div>
+        <textarea
+          name="about"
+          value={form.about}
+          onChange={change}
+          rows={4}
+          maxLength={ABOUT_MAX_LENGTH}
+          className={inputCls}
+          placeholder="Tell others about yourself…"
+        />
+        <div className="flex items-center justify-between mt-1">
+          {errors.about ? <p className="text-red-500 text-xs">{errors.about}</p> : <span />}
+          <p className={`text-xs ${form.about.length >= ABOUT_MAX_LENGTH ? 'text-red-500 font-semibold' : 'text-gray-400'}`}>
+            {form.about.length}/{ABOUT_MAX_LENGTH} characters
+          </p>
+        </div>
       </div>
 
       {/* Licensed States */}
@@ -408,7 +434,7 @@ const DashboardSettings = ({ initialTab = 'profile' }) => {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold" style={{ color: DARK }}>Settings</h1>
-        <p className="text-sm text-gray-500 mt-1">Manage your profile, security, and notification preferences.</p>
+        <p className="text-sm text-gray-500 mt-1">Manage your profile settings and password settings.</p>
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">

@@ -13,6 +13,17 @@ import { recordSearch } from '@/app/utils/searchHistory';
 
 const RealEstateMap = dynamic(() => import('../components/real-estate/RealEstateMap'), { ssr: false });
 
+// Randomize listing order on each page load — no listing gets a permanent
+// "always first" advantage from insertion/ID order.
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
 // Builds a windowed page-number list with ellipses, e.g. [1, '...', 4, 5, 6, '...', 12]
 function getPageNumbers(currentPage, totalPages, windowSize = 1) {
   const pages = [];
@@ -34,6 +45,9 @@ function RealEstate() {
   const [allRealEstates, setAllRealEstates] = useState([]);
   const [realEstates, setRealEstates] = useState([]);
   const [loadingRealEstate, setLoadingRealEstate] = useState(true);
+  // Shared between the listing grid and the map so hovering either one
+  // highlights the matching item in the other.
+  const [hoveredListingId, setHoveredListingId] = useState(null);
   const BACKEND_STORAGE_URL = process.env.NEXT_PUBLIC_BACKEND_STORAGE_URL;
 
   // Location data
@@ -100,22 +114,42 @@ function RealEstate() {
   const isRentLease = filterPropertyType.includes('[for rent/lease]');
   const priceRangeOptions = isRentLease ? rentPriceOptions : salePriceOptions;
 
-  // Cascade: country → states
+  // Cascade: country → states. Only clear the state/county selection when the
+  // country itself actually changed — recomputing this list because `countries`
+  // was refetched (e.g. React Strict Mode's double effect invocation in dev, or
+  // any future re-fetch) must not wipe an already-selected/deep-linked state.
+  const prevFilterCountry = useRef(filterCountry);
   useEffect(() => {
-    if (!filterCountry) { setStates([]); setFilterState(''); setCounties([]); setFilterCounty(''); return; }
+    const countryChanged = prevFilterCountry.current !== filterCountry;
+    prevFilterCountry.current = filterCountry;
+    if (!filterCountry) {
+      setStates([]); setCounties([]);
+      if (countryChanged) { setFilterState(''); setFilterCounty(''); }
+      return;
+    }
     const selected = countries.find(c => c.id == filterCountry);
     setStates(selected?.states || []);
-    setFilterState('');
-    setCounties([]);
-    setFilterCounty('');
+    if (countryChanged) {
+      setFilterState('');
+      setCounties([]);
+      setFilterCounty('');
+    }
   }, [filterCountry, countries]);
 
-  // Cascade: state → counties
+  // Cascade: state → counties. Same guard as above — only reset county when the
+  // state selection itself changed, not when `states` merely gets recomputed.
+  const prevFilterState = useRef(filterState);
   useEffect(() => {
-    if (!filterState) { setCounties([]); setFilterCounty(''); return; }
+    const stateChanged = prevFilterState.current !== filterState;
+    prevFilterState.current = filterState;
+    if (!filterState) {
+      setCounties([]);
+      if (stateChanged) setFilterCounty('');
+      return;
+    }
     const selectedState = states.find(s => s.id == filterState);
     setCounties(selectedState?.counties || []);
-    setFilterCounty('');
+    if (stateChanged) setFilterCounty('');
   }, [filterState, states]);
 
   // Deep-link: apply location ids as their option lists load
@@ -252,8 +286,9 @@ function RealEstate() {
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/business/find-business?${params.toString()}`);
         const data = await res.json();
         if (res.ok && data.result) {
-          setAllRealEstates(data.result);
-          setRealEstates(data.result);
+          const shuffled = shuffle(data.result);
+          setAllRealEstates(shuffled);
+          setRealEstates(shuffled);
         } else {
           setAllRealEstates([]);
           setRealEstates([]);
@@ -424,17 +459,17 @@ function RealEstate() {
 
         {/* ── Map — always visible after filters ── */}
         <div className="mb-10 max-w-6xl mx-auto">
-          <h2 className="text-2xl md:text-3xl font-bold text-[#40433F] text-center mb-2">Listings on Map</h2>
-          <p className="text-sm text-gray-500 text-center mb-4">
-            {realEstates.filter(l => l.latitude && l.longitude).length} of {realEstates.length} listings pinned
-          </p>
           <div className="rounded-xl overflow-hidden shadow-md border border-gray-200">
             {loadingRealEstate ? (
               <div className="flex items-center justify-center bg-gray-100" style={{ height: '520px' }}>
                 <LoadingSpinner />
               </div>
             ) : (
-              <RealEstateMap listings={realEstates} />
+              <RealEstateMap
+                listings={realEstates}
+                hoveredId={hoveredListingId}
+                onMarkerHover={setHoveredListingId}
+              />
             )}
           </div>
           {!loadingRealEstate && realEstates.filter(l => l.latitude && l.longitude).length === 0 && (
@@ -464,8 +499,16 @@ function RealEstate() {
                 const addressLine  = addressParts.join(', ');
 
                 return (
-                  <Link key={estate.id} href={`/buy-business/${estate.id}`} className="w-[280px] h-full flex-shrink-0 block">
-                    <div className="bg-white w-full h-full flex flex-col rounded-xl overflow-hidden border border-gray-200 shadow-sm hover:shadow-lg transition-shadow duration-200">
+                  <Link
+                    key={estate.id}
+                    href={`/buy-business/${estate.id}`}
+                    className="w-[280px] h-full flex-shrink-0 block"
+                    onMouseEnter={() => setHoveredListingId(estate.id)}
+                    onMouseLeave={() => setHoveredListingId(null)}
+                  >
+                    <div className={`bg-white w-full h-full flex flex-col rounded-xl overflow-hidden border shadow-sm hover:shadow-lg transition-all duration-200 ${
+                      hoveredListingId === estate.id ? 'border-[#0A3161] ring-2 ring-[#0A3161]/40 shadow-lg' : 'border-gray-200'
+                    }`}>
                       <div className="relative w-full h-[180px] flex-shrink-0">
                         <Image
                           fill

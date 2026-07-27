@@ -8,6 +8,7 @@ import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-toastify';
 
 const LOGIN_API_URL = process.env.NEXT_PUBLIC_API_URL + '/api/login';
+const RESEND_VERIFICATION_API_URL = process.env.NEXT_PUBLIC_API_URL + '/api/resend-verification-email';
 
 const SignIn = () => {
   const [email, setEmail] = useState('');
@@ -18,6 +19,8 @@ const SignIn = () => {
   const [loginLoading, setLoginLoading] = useState(false);
   const [loginError, setLoginError] = useState(null);
   const [errors, setErrors] = useState({});
+  const [needsVerification, setNeedsVerification] = useState(false);
+  const [resending, setResending] = useState(false);
 
   useEffect(() => {
     if (loginError) {
@@ -42,6 +45,7 @@ const SignIn = () => {
     }
     setLoginLoading(true);
     setLoginError(null);
+    setNeedsVerification(false);
     try {
       const form = new FormData();
       form.append('email', email);
@@ -68,12 +72,41 @@ const SignIn = () => {
         if (errorMsg.toLowerCase().includes('authfailed')) {
           errorMsg = 'Invalid email or password.';
         }
+        if (errorMsg.toLowerCase().includes('verify')) {
+          setNeedsVerification(true);
+        }
         setLoginError(errorMsg);
       }
     } catch (err) {
       setLoginError('Login failed.');
     } finally {
       setLoginLoading(false);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    if (!email.trim()) {
+      toast.error('Enter your email above first.', { position: 'top-right' });
+      return;
+    }
+    setResending(true);
+    try {
+      const form = new FormData();
+      form.append('email', email);
+      const res = await fetch(RESEND_VERIFICATION_API_URL, {
+        method: 'POST',
+        body: form,
+      });
+      const data = await res.json();
+      if (res.ok && data.message && data.message.toLowerCase().includes('sent')) {
+        toast.success(data.message, { position: 'top-right' });
+      } else {
+        toast.error(data.message || 'Failed to resend verification email.', { position: 'top-right' });
+      }
+    } catch (err) {
+      toast.error('Failed to resend verification email.', { position: 'top-right' });
+    } finally {
+      setResending(false);
     }
   };
 
@@ -167,6 +200,22 @@ const SignIn = () => {
               </button>
             </div>
           </div>
+
+          {needsVerification && (
+            <div className="text-center -mt-4">
+              <p className="text-xs md:text-sm text-[#40433F]">
+                Haven&apos;t verified your email yet?{' '}
+                <button
+                  type="button"
+                  onClick={handleResendVerification}
+                  disabled={resending}
+                  className="text-[#0A3161] font-semibold hover:underline disabled:opacity-50"
+                >
+                  {resending ? 'Sending...' : 'Resend verification email'}
+                </button>
+              </p>
+            </div>
+          )}
 
           {/* Forgot Password Link */}
           <div className="text-right mb-15 2xl:mb-20">

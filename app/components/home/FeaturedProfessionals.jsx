@@ -125,7 +125,7 @@ const FeaturedProfessionals = () => {
           Professionals
         </h1>
         <p className="text-center text-gray-500 text-sm md:text-base mb-16 max-w-2xl mx-auto">
-          Trusted brokers, attorneys, and advisors — the right expert for every step of your journey.
+          Connect with brokers, attorney, and advisors — the right experts for every step.
         </p>
 
         {loading ? (

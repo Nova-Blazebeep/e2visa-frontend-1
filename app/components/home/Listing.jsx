@@ -76,7 +76,7 @@ export default function ListingsTabs() {
       <div className="container mx-auto px-4">
         <h1 className="text-center xl:text-3xl text-2xl text-white font-bold mb-3">New Listings</h1>
         <p className="text-center text-gray-300 text-sm md:text-base mb-16 max-w-2xl mx-auto">
-          Fresh on the market — explore businesses and properties ready for their next owner.
+          Just listed ― explore businesses and properties waiting for you.
         </p>
 
         {loading ? (
@@ -87,7 +87,7 @@ export default function ListingsTabs() {
             <p className="text-lg">No Listings Found</p>
           </div>
         ) : (
-          <CardSlider>
+          <CardSlider autoplay speed={75}>
             {listings.map((listing) => (
               <Link
                 key={listing.id}

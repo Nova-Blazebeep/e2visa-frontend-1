@@ -9,6 +9,17 @@ import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/app/context/AuthContext';
 import { recordSearch } from '@/app/utils/searchHistory';
 
+// Randomize listing order on each page load — no business gets a permanent
+// "always first" advantage from insertion/ID order.
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
 // Builds a windowed page-number list with ellipses, e.g. [1, '...', 4, 5, 6, '...', 12]
 function getPageNumbers(currentPage, totalPages, windowSize = 1) {
   const pages = [];
@@ -59,30 +70,56 @@ function BuyBusiness() {
   const totalPages = Math.ceil(businesses.length / itemsPerPage);
   const paginatedBusinesses = businesses.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
-  // Cascade: country → states
+  // Cascade: country → states. Only clear the state/county selection when the
+  // country itself actually changed — recomputing this list because `countries`
+  // was refetched (e.g. React Strict Mode's double effect invocation in dev, or
+  // any future re-fetch) must not wipe an already-selected/deep-linked state.
+  const prevFilterCountry = useRef(filterCountry);
   useEffect(() => {
-    if (!filterCountry) { setStates([]); setFilterState(''); setCounties([]); setFilterCounty(''); return; }
+    const countryChanged = prevFilterCountry.current !== filterCountry;
+    prevFilterCountry.current = filterCountry;
+    if (!filterCountry) {
+      setStates([]); setCounties([]);
+      if (countryChanged) { setFilterState(''); setFilterCounty(''); }
+      return;
+    }
     const selected = countries.find(c => String(c.id) === String(filterCountry));
     setStates(selected?.states || []);
-    setFilterState('');
-    setCounties([]);
-    setFilterCounty('');
+    if (countryChanged) {
+      setFilterState('');
+      setCounties([]);
+      setFilterCounty('');
+    }
   }, [filterCountry, countries]);
 
-  // Cascade: state → counties
+  // Cascade: state → counties. Same guard as above.
+  const prevFilterState = useRef(filterState);
   useEffect(() => {
-    if (!filterState) { setCounties([]); setFilterCounty(''); return; }
+    const stateChanged = prevFilterState.current !== filterState;
+    prevFilterState.current = filterState;
+    if (!filterState) {
+      setCounties([]);
+      if (stateChanged) setFilterCounty('');
+      return;
+    }
     const selectedState = states.find(s => String(s.id) === String(filterState));
     setCounties(selectedState?.counties || []);
-    setFilterCounty('');
+    if (stateChanged) setFilterCounty('');
   }, [filterState, states]);
 
-  // Cascade: category → subcategories
+  // Cascade: category → subcategories. Same guard as above.
+  const prevFilterCategory = useRef(filterCategory);
   useEffect(() => {
-    if (!filterCategory) { setSubCategories([]); setFilterSubCategory(''); return; }
+    const categoryChanged = prevFilterCategory.current !== filterCategory;
+    prevFilterCategory.current = filterCategory;
+    if (!filterCategory) {
+      setSubCategories([]);
+      if (categoryChanged) setFilterSubCategory('');
+      return;
+    }
     const selected = categories.find(c => String(c.id) === String(filterCategory));
     setSubCategories(selected?.subcategories || []);
-    setFilterSubCategory('');
+    if (categoryChanged) setFilterSubCategory('');
   }, [filterCategory, categories]);
 
   // Fetch categories (with nested subcategories) once
@@ -160,8 +197,9 @@ function BuyBusiness() {
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/business/find-business?${params.toString()}`);
         const data = await res.json();
         if (res.ok && data.result) {
-          setAllBusinesses(data.result);
-          setBusinesses(data.result);
+          const shuffled = shuffle(data.result);
+          setAllBusinesses(shuffled);
+          setBusinesses(shuffled);
         } else {
           setAllBusinesses([]);
           setBusinesses([]);

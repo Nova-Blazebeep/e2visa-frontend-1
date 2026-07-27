@@ -14,7 +14,7 @@ function markerPriceLabel(price, isRent) {
   return isRent ? label + '/mo' : label;
 }
 
-export default function RealEstateMap({ listings }) {
+export default function RealEstateMap({ listings, hoveredId, onMarkerHover }) {
   const mapRef         = useRef(null);
   const mapInstanceRef = useRef(null);
   const markersRef     = useRef([]);
@@ -40,7 +40,7 @@ export default function RealEstateMap({ listings }) {
       }
 
       const map = mapInstanceRef.current;
-      markersRef.current.forEach(m => m.remove());
+      markersRef.current.forEach(({ marker }) => marker.remove());
       markersRef.current = [];
 
       const valid  = listings.filter(l => l.latitude && l.longitude);
@@ -56,7 +56,7 @@ export default function RealEstateMap({ listings }) {
 
         /* ── marker bubble ── */
         const markerHtml = markerLabel
-          ? `<div style="background:#c0392b;color:#fff;font-size:11px;font-weight:700;
+          ? `<div id="re-marker-${listing.id}" class="re-marker-inner" style="background:#c0392b;color:#fff;font-size:11px;font-weight:700;
                 font-family:Arial,sans-serif;padding:4px 9px;border-radius:14px;
                 white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,0.35);
                 border:2px solid #fff;position:relative;display:inline-block;">
@@ -65,7 +65,7 @@ export default function RealEstateMap({ listings }) {
                 width:0;height:0;border-left:5px solid transparent;
                 border-right:5px solid transparent;border-top:7px solid #c0392b;"></span>
             </div>`
-          : `<div style="width:28px;height:28px;border-radius:50%;background:#c0392b;
+          : `<div id="re-marker-${listing.id}" class="re-marker-inner" style="width:28px;height:28px;border-radius:50%;background:#c0392b;
                 border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.35);
                 display:flex;align-items:center;justify-content:center;position:relative;">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="white">
@@ -84,6 +84,8 @@ export default function RealEstateMap({ listings }) {
         });
 
         const marker = L.marker([lat, lng], { icon }).addTo(map);
+        marker.on('mouseover', () => onMarkerHover && onMarkerHover(listing.id));
+        marker.on('mouseout', () => onMarkerHover && onMarkerHover(null));
 
         /* ── popup data ── */
         const displayPrice = formatRealEstatePrice(listing);
@@ -154,7 +156,7 @@ export default function RealEstateMap({ listings }) {
           className: 're-popup',
         });
 
-        markersRef.current.push(marker);
+        markersRef.current.push({ id: listing.id, marker });
         bounds.push([lat, lng]);
       });
 
@@ -169,6 +171,18 @@ export default function RealEstateMap({ listings }) {
       }
     });
   }, [listings]);
+
+  // Sync highlight state — from either a hovered listing card (hoveredId prop)
+  // or a hovered marker itself (mouseover above, which calls onMarkerHover to
+  // bubble the id back up to the listing grid).
+  useEffect(() => {
+    markersRef.current.forEach(({ id, marker }) => {
+      const el = document.getElementById(`re-marker-${id}`);
+      const isHovered = hoveredId != null && String(id) === String(hoveredId);
+      if (el) el.classList.toggle('re-marker-hovered', isHovered);
+      marker.setZIndexOffset(isHovered ? 1000 : 0);
+    });
+  }, [hoveredId, listings]);
 
   function handleReset() {
     const map = mapInstanceRef.current;
@@ -185,6 +199,15 @@ export default function RealEstateMap({ listings }) {
     <>
       <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossOrigin="" />
       <style>{`
+        .re-marker-inner {
+          transition: filter 0.15s ease, outline 0.15s ease;
+          outline: 0 solid transparent;
+        }
+        .re-marker-hovered {
+          filter: brightness(1.15) drop-shadow(0 0 8px rgba(192,57,43,0.85));
+          outline: 3px solid #fff;
+          outline-offset: 1px;
+        }
         .re-popup .leaflet-popup-content-wrapper {
           padding: 0 !important;
           border-radius: 10px !important;
