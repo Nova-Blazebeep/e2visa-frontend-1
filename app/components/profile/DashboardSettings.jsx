@@ -52,7 +52,7 @@ const Toggle = ({ checked, onChange }) => (
 // ─── Tabs ────────────────────────────────────────────────────────────────────
 const FULL_TABS = [
   { key: 'profile', label: 'Profile', icon: <><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></> },
-  { key: 'password', label: 'Password', icon: <><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></> },
+  { key: 'password', label: 'Password', icon: null },
   { key: 'notifications', label: 'Notifications', icon: <><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></> },
 ];
 
@@ -186,7 +186,7 @@ function ProfilePanel() {
           <p className="text-lg font-bold truncate" style={{ color: DARK }}>{userInfo?.name || 'User'}</p>
           <p className="text-sm text-gray-500 truncate">{userInfo?.email || ''}</p>
           {userInfo?.role && (
-            <span className="inline-block mt-1.5 text-[10px] font-bold uppercase tracking-wide px-2.5 py-0.5 rounded-full" style={{ color: TEAL_DARK, background: 'rgba(46,196,182,0.1)' }}>
+            <span className="inline-block mt-1.5 text-[10px] font-bold uppercase tracking-wide px-2.5 py-0.5 rounded-full" style={{ color: '#40433F', background: 'rgba(64,67,63,0.1)' }}>
               {userInfo.role}
             </span>
           )}
@@ -445,11 +445,13 @@ const DashboardSettings = ({ initialTab = 'profile' }) => {
               key={t.key}
               onClick={() => setTab(t.key)}
               className={`flex items-center gap-2 px-4 py-3.5 text-sm font-semibold whitespace-nowrap border-b-2 -mb-px transition-colors ${
-                tab === t.key ? 'border-[#2EC4B6]' : 'border-transparent text-gray-500 hover:text-[#40433F]'
+                tab === t.key ? 'border-[#40433F]' : 'border-transparent text-gray-500 hover:text-[#40433F]'
               }`}
-              style={tab === t.key ? { color: TEAL_DARK } : undefined}
+              style={tab === t.key ? { color: '#40433F' } : undefined}
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{t.icon}</svg>
+              {t.icon && (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{t.icon}</svg>
+              )}
               {t.label}
             </button>
           ))}

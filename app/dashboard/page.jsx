@@ -10,6 +10,7 @@ import { getNotifications, markRead, markAllRead, removeNotification, NOTIFICATI
 import { runNotificationChecks } from '@/app/utils/notificationChecks';
 import DashboardSettings from '@/app/components/profile/DashboardSettings';
 import SaveListingButton from '@/app/components/common/SaveListingButton';
+import LoadingSpinner from '@/app/components/common/LoadingSpinner';
 import { USER_DETAIL_UPDATED_EVENT } from '@/app/utils/userDetail';
 import { DASHBOARD_OVERVIEW_ENABLED, DASHBOARD_SEARCH_ENABLED } from '@/app/config/featureFlags';
 import { toast } from 'react-toastify';
@@ -256,7 +257,7 @@ function DashboardContent() {
   if (loading || !user) {
     return (
       <div className="bg-[#F4F5F4] min-h-screen flex items-center justify-center">
-        <p className="text-sm text-gray-500">Redirecting to sign in…</p>
+        <LoadingSpinner />
       </div>
     );
   }
@@ -308,11 +309,11 @@ function DashboardContent() {
                   onClick={() => setSection(item.key)}
                   className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                     section === item.key
-                      ? 'bg-[#2EC4B6]/10 text-[#22A99C]'
+                      ? 'bg-[#40433F]/10 text-[#40433F]'
                       : 'text-[#40433F] hover:bg-gray-50'
                   }`}
                 >
-                  <Icon name={item.icon} size={17} color={section === item.key ? TEAL_DARK : DARK} />
+                  <Icon name={item.icon} size={17} color={DARK} />
                   <span className="flex-1 text-left">{item.label}</span>
                   {item.badgeKey === 'unread' && unreadCount > 0 && (
                     <span className="min-w-[20px] h-5 px-1 rounded-full text-white text-[10px] font-bold flex items-center justify-center" style={{ background: TEAL }}>
@@ -341,7 +342,10 @@ function DashboardContent() {
 
         {/* ── Main ── */}
         <div className="flex-1 min-w-0">
-          {/* Top bar */}
+          {/* Top bar — hidden entirely when neither the search box nor the
+              notification/profile icons (its only contents) are enabled,
+              so it doesn't leave an empty padded strip above the content. */}
+          {(DASHBOARD_SEARCH_ENABLED || DASHBOARD_OVERVIEW_ENABLED) && (
           <div className="bg-white border-b border-gray-200 px-4 md:px-8 py-4 flex items-center gap-4">
             <div className={`flex-1 max-w-xl relative ${DASHBOARD_SEARCH_ENABLED ? '' : 'hidden'}`}>
               <span className="absolute left-3.5 top-1/2 -translate-y-1/2 z-10">
@@ -434,6 +438,7 @@ function DashboardContent() {
               )}
             </div>
           </div>
+          )}
 
           <div className="px-4 md:px-8 py-8 space-y-8 max-w-[1200px]">
             {section === 'dashboard' && (
