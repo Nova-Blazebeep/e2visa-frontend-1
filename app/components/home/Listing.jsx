@@ -121,7 +121,7 @@ export default function ListingsTabs() {
         ) : listings.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-10">
             <h2 className="text-3xl font-bold mb-2">Oops!</h2>
-            <p className="text-lg">No Listings Found</p>
+            <p className="text-lg">No Listings Found123</p>
           </div>
         ) : (
           <CardSlider autoplay speed={75}>
