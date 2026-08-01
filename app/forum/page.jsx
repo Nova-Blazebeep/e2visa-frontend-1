@@ -19,6 +19,23 @@ const getToken = () => {
   return null;
 };
 
+// Buyers always allowed; everyone else needs an active badge. badge_status
+// is null for Buyer/Admin/Moderator (see LoginController), so this also
+// covers those roles correctly.
+const getStoredUser = () => {
+  if (typeof window === 'undefined') return null;
+  try {
+    return JSON.parse(localStorage.getItem('userDetail'));
+  } catch {
+    return null;
+  }
+};
+
+const canPostInForum = (storedUser) => {
+  if (!storedUser) return false;
+  return storedUser.role === 'Buyer' || storedUser.badge_status === 'active';
+};
+
 function EmptyState({ title, subtitle }) {
   return (
     <div className="flex flex-col items-center justify-center text-center py-16 bg-white rounded-xl border border-dashed border-gray-300">
@@ -79,6 +96,7 @@ function ForumContent() {
   const [contentError, setContentError] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [token, setToken] = useState(null);
+  const [hasBadgeAccess, setHasBadgeAccess] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [loadingSearch, setLoadingSearch] = useState(false);
@@ -88,6 +106,7 @@ function ForumContent() {
 
   useEffect(() => {
     setToken(getToken());
+    setHasBadgeAccess(canPostInForum(getStoredUser()));
   }, []);
 
   useEffect(() => {
@@ -315,8 +334,26 @@ function ForumContent() {
           </div>
         )}
 
-        {/* Composer / Sign-in CTA */}
-        {token ? (
+        {/* Composer / Get-a-badge CTA / Sign-in CTA */}
+        {token && !hasBadgeAccess ? (
+          <div className="bg-[#40433F] rounded-xl p-6 mb-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-white/15 flex items-center justify-center flex-shrink-0">
+                <svg width="18" height="18" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                  <path d="M12 15a3 3 0 100-6 3 3 0 000 6z" />
+                  <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09A1.65 1.65 0 0015 4.6a1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z" />
+                </svg>
+              </div>
+              <div>
+                <p className="font-bold text-white">Get your badge to participate in the forum.</p>
+                <p className="text-sm text-white/80">Visit Settings to see your badge status and get started.</p>
+              </div>
+            </div>
+            <Link href="/dashboard?section=settings" className="px-5 py-2 rounded-lg bg-white text-[#40433F] text-sm font-semibold hover:bg-gray-100 transition-colors flex-shrink-0">
+              Go to Settings
+            </Link>
+          </div>
+        ) : token ? (
           <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 mb-8">
             <div className="flex flex-col items-center text-center mb-5">
               <div className="flex items-center gap-2.5">
@@ -333,7 +370,7 @@ function ForumContent() {
                 <svg width="14" height="14" fill="none" stroke="#2EC4B6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" className="flex-shrink-0">
                   <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
                 </svg>
-                Ask a question or share your experience — the community and our experts are here to help.
+                Ask a question or share your experience — the community is here to help.
               </p>
             </div>
 

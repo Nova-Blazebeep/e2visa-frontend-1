@@ -9,6 +9,7 @@ import { getSearchHistory, removeSearch, SEARCH_HISTORY_EVENT, timeAgo } from '@
 import { getNotifications, markRead, markAllRead, removeNotification, NOTIFICATIONS_EVENT } from '@/app/utils/notifications';
 import { runNotificationChecks } from '@/app/utils/notificationChecks';
 import DashboardSettings from '@/app/components/profile/DashboardSettings';
+import DashboardListings from '@/app/components/profile/DashboardListings';
 import SaveListingButton from '@/app/components/common/SaveListingButton';
 import LoadingSpinner from '@/app/components/common/LoadingSpinner';
 import { USER_DETAIL_UPDATED_EVENT } from '@/app/utils/userDetail';
@@ -87,6 +88,7 @@ const Icon = ({ name, size = 18, color = DARK, className = '', fill = 'none' }) 
 // ─── Sidebar config ──────────────────────────────────────────────────────────
 const FULL_MENU = [
   { key: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
+  { key: 'listings', label: 'My Listings', icon: 'briefcase' },
   { key: 'saved', label: 'My Saved Listings', icon: 'heart' },
   { key: 'searches', label: 'My Searches', icon: 'search' },
   { key: 'notifications', label: 'Notifications', icon: 'bell', badgeKey: 'unread' },
@@ -94,11 +96,12 @@ const FULL_MENU = [
 ];
 
 // Temporarily hidden per client request (DASHBOARD_OVERVIEW_ENABLED in
-// featureFlags.js) — only Settings shows in the sidebar until re-enabled.
-// FULL_MENU above is untouched; flip the flag to restore everything.
+// featureFlags.js) — only Dashboard, My Listings and Settings show in the
+// sidebar until re-enabled (My Saved Listings / My Searches / Notifications
+// stay hidden). FULL_MENU above is untouched; flip the flag to restore everything.
 const MENU = DASHBOARD_OVERVIEW_ENABLED
   ? FULL_MENU
-  : FULL_MENU.filter(item => item.key === 'settings');
+  : FULL_MENU.filter(item => item.key === 'dashboard' || item.key === 'listings' || item.key === 'settings');
 
 const BROWSE = [
   { label: 'Businesses', icon: 'briefcase', href: '/buy-business' },
@@ -112,19 +115,21 @@ const TABS = ['Businesses', 'Real Estate'];
 const TAB_LINKS = { Businesses: '/buy-business', 'Real Estate': '/real-estate' };
 
 // ─── Page ────────────────────────────────────────────────────────────────────
-const VALID_SECTIONS = ['dashboard', 'saved', 'searches', 'notifications', 'settings'];
+const VALID_SECTIONS = ['dashboard', 'listings', 'saved', 'searches', 'notifications', 'settings'];
 
 function DashboardContent() {
   const searchParams = useSearchParams();
   const rawSection = searchParams.get('section');
   // "profile" links open Settings on its Profile tab
-  const defaultSection = DASHBOARD_OVERVIEW_ENABLED ? 'dashboard' : 'settings';
+  const defaultSection = 'dashboard';
   const requestedSection = rawSection === 'profile'
     ? 'settings'
     : VALID_SECTIONS.includes(rawSection) ? rawSection : defaultSection;
-  // Overview temporarily disabled — bounce any deep link into a hidden
-  // section (dashboard/saved/searches/notifications) straight to Settings.
-  const initialSection = !DASHBOARD_OVERVIEW_ENABLED && requestedSection !== 'settings'
+  // Overview temporarily disabled — bounce any deep link into a still-hidden
+  // section (saved/searches/notifications) straight to Settings. Dashboard
+  // and My Listings stay reachable regardless — they're not part of the
+  // hidden overview extras.
+  const initialSection = !DASHBOARD_OVERVIEW_ENABLED && requestedSection !== 'settings' && requestedSection !== 'listings' && requestedSection !== 'dashboard'
     ? 'settings'
     : requestedSection;
   const initialSettingsTab = rawSection === 'profile' ? 'profile' : (searchParams.get('tab') || 'profile');
@@ -139,6 +144,7 @@ function DashboardContent() {
   const [query, setQuery] = useState('');
   const [searchFocused, setSearchFocused] = useState(false);
   const [userName, setUserName] = useState('');
+  const [myListings, setMyListings] = useState([]);
   const { user, loading } = useAuth();
   const router = useRouter();
 
@@ -189,10 +195,11 @@ function DashboardContent() {
     return () => { active = false; };
   }, []);
 
-  // Overview temporarily disabled — if section ever lands on a hidden value
-  // (e.g. a deep link followed while already mounted), bounce to Settings.
+  // Overview temporarily disabled — if section ever lands on a still-hidden
+  // value (e.g. a deep link followed while already mounted), bounce to
+  // Settings. Dashboard and My Listings stay reachable regardless.
   useEffect(() => {
-    if (!DASHBOARD_OVERVIEW_ENABLED && section !== 'settings') {
+    if (!DASHBOARD_OVERVIEW_ENABLED && section !== 'settings' && section !== 'listings' && section !== 'dashboard') {
       setSection('settings');
     }
   }, [section]);
@@ -226,6 +233,28 @@ function DashboardContent() {
   // Check for new listings / saved-search matches / price changes on load
   useEffect(() => {
     if (user) runNotificationChecks();
+  }, [user]);
+
+  // My Business/Real Estate Listings counts for the stat cards below — works
+  // for any signed-in user (returns an empty list for Buyers/ineligible
+  // professionals, since they can never have created any).
+  useEffect(() => {
+    if (!user) return;
+    let active = true;
+    (async () => {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+      try {
+        const res = await fetch(`${API}/api/my-listings`, {
+          headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
+        });
+        const data = await res.json();
+        if (active && res.ok && Array.isArray(data.result)) setMyListings(data.result);
+      } catch {
+        // Silent — stat cards just show 0 if this fails.
+      }
+    })();
+    return () => { active = false; };
   }, [user]);
 
   const unreadCount = notifications.filter(n => !n.read).length;
@@ -262,14 +291,15 @@ function DashboardContent() {
     );
   }
 
-  const savedBusinesses = savedListings.filter(l => l.type === 'Business');
-  const savedProperties = savedListings.filter(l => l.type === 'Real Estate');
+  const myBusinessListings = myListings.filter(l => l.business_type === 'business');
+  const myRealEstateListings = myListings.filter(l => l.business_type === 'real-estate');
 
-  // Businesses & properties counts are live (from saved listings);
-  // professionals & articles stay mocked until their save feature exists.
+  // Stat cards show the listings this user has created themselves (Phase 2)
+  // — the count that actually matters to a Seller/Professional. Clicking
+  // through goes to My Listings, which is always reachable.
   const stats = [
-    { label: 'Saved Businesses', value: savedBusinesses.length, tint: 'bg-[#2EC4B6]/10', color: TEAL_DARK, icon: 'briefcase', onClick: () => setSection('saved') },
-    { label: 'Saved Real Estate', value: savedProperties.length, tint: 'bg-emerald-500/10', color: '#059669', icon: 'home', onClick: () => setSection('saved') },
+    { label: 'My Business Listings', value: myBusinessListings.length, tint: 'bg-[#2EC4B6]/10', color: TEAL_DARK, icon: 'briefcase', onClick: () => setSection('listings') },
+    { label: 'My Real Estate Listings', value: myRealEstateListings.length, tint: 'bg-emerald-500/10', color: '#059669', icon: 'home', onClick: () => setSection('listings') },
   ];
 
   const handleRemoveSaved = (item) => {
@@ -582,41 +612,10 @@ function DashboardContent() {
                   )}
                 </div>
 
-                {/* Recent searches */}
-                <div className="bg-white rounded-2xl border border-gray-200 p-5 md:p-6">
-                  <div className="flex items-center justify-between mb-3">
-                    <h2 className="text-lg font-bold" style={{ color: DARK }}>Recent Searches</h2>
-                    <button onClick={() => setSection('searches')} className="text-[13px] font-semibold hover:underline" style={{ color: TEAL_DARK }}>
-                      View all
-                    </button>
-                  </div>
-                  {searchHistory.length === 0 ? (
-                    <p className="text-sm text-gray-500 py-4">
-                      No searches yet — use the filters on the Find a Business or Real Estate pages and hit &quot;Search Now&quot;. Your searches will appear here.
-                    </p>
-                  ) : (
-                    <div className="divide-y divide-gray-100">
-                      {searchHistory.slice(0, 3).map(s => {
-                        const style = SEARCH_STYLE[s.type] || SEARCH_STYLE.business;
-                        return (
-                          <Link key={s.id} href={s.url} className="w-full flex items-center gap-4 py-3.5 text-left hover:bg-gray-50 rounded-xl px-2 -mx-2 transition-colors">
-                            <span className={`w-10 h-10 rounded-xl ${style.tint} flex items-center justify-center flex-shrink-0`}>
-                              <Icon name={style.icon} size={17} color={style.color} />
-                            </span>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-semibold truncate" style={{ color: DARK }}>{s.label}</p>
-                              <p className="text-xs text-gray-500 truncate">{s.meta}{typeof s.resultCount === 'number' ? ` · ${s.resultCount} result${s.resultCount === 1 ? '' : 's'}` : ''}</p>
-                            </div>
-                            <span className="text-xs text-gray-400 flex-shrink-0">{timeAgo(s.searchedAt)}</span>
-                            <Icon name="chevron" size={15} color="#9ca3af" className="flex-shrink-0" />
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
               </>
             )}
+
+            {section === 'listings' && <DashboardListings />}
 
             {section === 'saved' && (
               <div className="space-y-6">

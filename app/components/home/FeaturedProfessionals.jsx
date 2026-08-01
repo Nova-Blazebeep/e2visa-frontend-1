@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import LoadingSpinner from "@/app/components/common/LoadingSpinner";
@@ -58,13 +57,13 @@ const ProCard = ({ pro, onClick, backendUrl }) => {
             onError={() => setImgFailed(true)}
           />
         )}
+        {/* Backend only sends badge_icon once this professional's paid badge is active */}
         {pro.badge_icon && backendUrl && (
           <div className="absolute top-2 right-2 w-7 h-7 rounded-full overflow-hidden border-2 border-white shadow">
-            <Image
+            <img
               src={`${backendUrl}/${pro.badge_icon}`}
-              alt="badge"
-              width={28}
-              height={28}
+              alt="Active badge"
+              title={`Active ${pro.role} Badge`}
               className="object-cover w-full h-full"
             />
           </div>

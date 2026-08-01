@@ -225,7 +225,18 @@ function Professionals() {
                           <p className="lg:text-sm text-xs text-gray-600">
                             {[pro.user_information?.state_name, pro.user_information?.country_name].filter(Boolean).join(', ') || ''}
                           </p>
-                          <p className="lg:text-sm text-xs text-gray-600">{pro.role}</p>
+                          <p className="lg:text-sm text-xs text-gray-600 flex items-center gap-1">
+                            {pro.role}
+                            {/* Backend only sends badge_icon once this professional's paid badge is active */}
+                            {pro.badge_icon && (
+                              <img
+                                src={`${process.env.NEXT_PUBLIC_BACKEND_STORAGE_URL}/${pro.badge_icon}`}
+                                alt="Active badge"
+                                title={`Active ${pro.role} Badge`}
+                                className="w-4 h-4 rounded-full object-cover"
+                              />
+                            )}
+                          </p>
                           {pro.user_information?.licensed_states?.length > 0 && (() => {
                             const states = [...new Set(pro.user_information.licensed_states)];
                             const allStates = states.length >= 50;

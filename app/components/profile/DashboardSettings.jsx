@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react';
 import Image from 'next/image';
 import { toast } from 'react-toastify';
 import { useAuth } from '../../context/AuthContext';
@@ -49,6 +49,56 @@ const Toggle = ({ checked, onChange }) => (
   </button>
 );
 
+// ─── Badge status card ───────────────────────────────────────────────────────
+// Shown to non-Buyer users only. Payment is handled entirely outside E2Visa —
+// this just links out to Mike's merchant services and reflects whatever an
+// admin has set in the portal (pending/active/revoked). We deliberately never
+// say "Expert" anywhere here — neutral wording only, per legal guidance.
+const BADGE_STATUS_META = {
+  pending: { label: 'Pending', color: '#b8860b', bg: 'rgba(184,134,11,0.1)' },
+  active: { label: 'Active', color: '#1e8449', bg: 'rgba(30,132,73,0.1)' },
+  revoked: { label: 'Revoked', color: '#a93226', bg: 'rgba(169,50,38,0.1)' },
+};
+
+function BadgeStatusCard({ status }) {
+  const meta = BADGE_STATUS_META[status] || BADGE_STATUS_META.pending;
+  const merchantUrl = process.env.NEXT_PUBLIC_MERCHANT_SERVICES_URL;
+
+  return (
+    <div className="rounded-xl border border-gray-200 bg-gray-50 px-5 py-4 flex items-center justify-between flex-wrap gap-3">
+      <div>
+        <p className="text-[13px] font-semibold" style={{ color: DARK }}>
+          Badge Status:{' '}
+          <span
+            className="inline-block ml-1 text-[11px] font-bold uppercase tracking-wide px-2.5 py-0.5 rounded-full align-middle"
+            style={{ color: meta.color, background: meta.bg }}
+          >
+            {meta.label}
+          </span>
+        </p>
+        <p className="text-xs text-gray-500 mt-1 max-w-md">
+          {status === 'active'
+            ? "You're all set — you can post and answer questions in the forum."
+            : status === 'revoked'
+              ? 'Your badge was revoked. Contact us if you believe this is a mistake.'
+              : "An active badge is required to post and answer in the forum. Get yours below — once we confirm your payment, we'll activate it."}
+        </p>
+      </div>
+      {status !== 'active' && (
+        <a
+          href={merchantUrl || '#'}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-white px-4 py-2 rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity flex-shrink-0"
+          style={{ background: DARK }}
+        >
+          Get Your Badge
+        </a>
+      )}
+    </div>
+  );
+}
+
 // ─── Tabs ────────────────────────────────────────────────────────────────────
 const FULL_TABS = [
   { key: 'profile', label: 'Profile', icon: <><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></> },
@@ -96,6 +146,30 @@ function ProfilePanel() {
     window.addEventListener(USER_DETAIL_UPDATED_EVENT, load);
     return () => window.removeEventListener(USER_DETAIL_UPDATED_EVENT, load);
   }, [load]);
+
+  // Pick up changes made elsewhere (e.g. an admin activating this user's
+  // badge in the portal) without requiring a sign-out/sign-in. Refreshes on
+  // mount and every 20s while Settings is open; updateStoredUserDetail()
+  // merges the result and fires USER_DETAIL_UPDATED_EVENT, which the effect
+  // above already listens for — so this alone keeps the whole panel in sync.
+  useEffect(() => {
+    const refreshFromServer = async () => {
+      const t = localStorage.getItem('token');
+      if (!t) return;
+      try {
+        const res = await fetch(`${API_URL}/api/user/me`, { headers: { Authorization: `Bearer ${t}` } });
+        const data = await res.json();
+        if (res.ok && data.result?.user) {
+          updateStoredUserDetail(data.result.user);
+        }
+      } catch {
+        // Silent — this is a background refresh, not a user-initiated action.
+      }
+    };
+    refreshFromServer();
+    const interval = setInterval(refreshFromServer, 20000);
+    return () => clearInterval(interval);
+  }, []);
 
   const change = (e) => setForm(p => ({ ...p, [e.target.name]: e.target.value }));
 
@@ -183,7 +257,20 @@ function ProfilePanel() {
           </label>
         </div>
         <div className="min-w-0">
-          <p className="text-lg font-bold truncate" style={{ color: DARK }}>{userInfo?.name || 'User'}</p>
+          <p className="text-lg font-bold truncate flex items-center gap-1.5" style={{ color: DARK }}>
+            {userInfo?.name || 'User'}
+            {userInfo?.badge_status === 'active' && userInfo?.role_badge_icon && (
+              <Image
+                src={`${STORAGE_URL}/${userInfo.role_badge_icon}`}
+                alt={`${userInfo.role} badge`}
+                title={`Active ${userInfo.role} Badge`}
+                width={20}
+                height={20}
+                className="rounded-full flex-shrink-0 ring-1 ring-gray-200"
+                unoptimized
+              />
+            )}
+          </p>
           <p className="text-sm text-gray-500 truncate">{userInfo?.email || ''}</p>
           {userInfo?.role && (
             <span className="inline-block mt-1.5 text-[10px] font-bold uppercase tracking-wide px-2.5 py-0.5 rounded-full" style={{ color: '#40433F', background: 'rgba(64,67,63,0.1)' }}>
@@ -192,6 +279,11 @@ function ProfilePanel() {
           )}
         </div>
       </div>
+
+      {/* Badge status — only applies to non-Buyer (paid) roles */}
+      {userInfo?.role && userInfo.role !== 'Buyer' && (
+        <BadgeStatusCard status={userInfo?.badge_status} />
+      )}
 
       {/* Name + Email */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -429,6 +521,25 @@ function NotificationsPanel() {
 // ─── Wrapper with tabs ───────────────────────────────────────────────────────
 const DashboardSettings = ({ initialTab = 'profile' }) => {
   const [tab, setTab] = useState(TABS.some(t => t.key === initialTab) ? initialTab : 'profile');
+  const tabRefs = useRef({});
+  const [indicator, setIndicator] = useState({ left: 0, width: 0 });
+
+  // Measures the active tab button so the sliding background can animate to
+  // it — re-runs on tab change and on resize, since the tab bar can reflow
+  // (overflow-x-auto on narrow screens).
+  const measureIndicator = useCallback(() => {
+    const el = tabRefs.current[tab];
+    if (el) setIndicator({ left: el.offsetLeft, width: el.offsetWidth });
+  }, [tab]);
+
+  useLayoutEffect(() => {
+    measureIndicator();
+  }, [measureIndicator]);
+
+  useEffect(() => {
+    window.addEventListener('resize', measureIndicator);
+    return () => window.removeEventListener('resize', measureIndicator);
+  }, [measureIndicator]);
 
   return (
     <div className="space-y-6">
@@ -439,13 +550,20 @@ const DashboardSettings = ({ initialTab = 'profile' }) => {
 
       <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
         {/* Tab bar */}
-        <div className="flex border-b border-gray-100 px-2 sm:px-4 overflow-x-auto">
+        <div className="relative flex border-b border-gray-100 px-2 sm:px-4 overflow-x-auto">
+          {/* Sliding active-tab background — animates left/width to match
+              whichever button is active */}
+          <div
+            className="absolute top-2 bottom-2 rounded-lg bg-[#40433F]/10 transition-all duration-300 ease-out pointer-events-none"
+            style={{ left: indicator.left, width: indicator.width }}
+          />
           {TABS.map(t => (
             <button
               key={t.key}
+              ref={(el) => { tabRefs.current[t.key] = el; }}
               onClick={() => setTab(t.key)}
-              className={`flex items-center gap-2 px-4 py-3.5 text-sm font-semibold whitespace-nowrap border-b-2 -mb-px transition-colors ${
-                tab === t.key ? 'border-[#40433F]' : 'border-transparent text-gray-500 hover:text-[#40433F]'
+              className={`relative z-10 flex items-center gap-2 px-4 py-3.5 text-sm font-semibold whitespace-nowrap transition-colors ${
+                tab === t.key ? '' : 'text-gray-500 hover:text-[#40433F]'
               }`}
               style={tab === t.key ? { color: '#40433F' } : undefined}
             >

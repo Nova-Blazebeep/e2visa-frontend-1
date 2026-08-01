@@ -10,6 +10,34 @@ import { timeAgo } from '@/app/utils/timeAgo';
 import UnderDevelopment from '@/app/components/common/UnderDevelopment';
 import { FORUM_UNDER_DEVELOPMENT } from '@/app/config/featureFlags';
 
+// Buyers always allowed; everyone else needs an active badge. badge_status
+// is null for Buyer/Admin/Moderator (see LoginController), so this also
+// covers those roles correctly.
+const getStoredUser = () => {
+  if (typeof window === 'undefined') return null;
+  try {
+    return JSON.parse(localStorage.getItem('userDetail'));
+  } catch {
+    return null;
+  }
+};
+
+const canPostInForum = (storedUser) => {
+  if (!storedUser) return false;
+  return storedUser.role === 'Buyer' || storedUser.badge_status === 'active';
+};
+
+function BadgeRequiredPrompt() {
+  return (
+    <div className="bg-[#40433F] rounded-xl p-5 mb-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <p className="text-sm text-white/90 font-medium">Get your badge to participate in the forum.</p>
+      <Link href="/dashboard?section=settings" className="px-4 py-2 rounded-lg bg-white text-[#40433F] text-sm font-semibold hover:bg-gray-100 transition-colors flex-shrink-0">
+        Go to Settings
+      </Link>
+    </div>
+  );
+}
+
 function SignInPrompt({ message }) {
   return (
     <div className="bg-[#40433F] rounded-xl p-5 mb-6 flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -53,7 +81,7 @@ function ReplyItem({ reply, backendUrl }) {
   );
 }
 
-function CommentItem({ comment, backendUrl, token, replyingTo, setReplyingTo, replyText, setReplyText, replyError, setReplyError, onSubmitReply }) {
+function CommentItem({ comment, backendUrl, token, hasBadgeAccess, replyingTo, setReplyingTo, replyText, setReplyText, replyError, setReplyError, onSubmitReply }) {
   const avatarSrc = comment.user?.image ? `${backendUrl}/${comment.user.image}` : null;
   const badgeSrc = comment.commentor_badge_icon ? `${backendUrl}/${comment.commentor_badge_icon}` : null;
   const isReplying = replyingTo === comment.id;
@@ -78,7 +106,7 @@ function CommentItem({ comment, backendUrl, token, replyingTo, setReplyingTo, re
           {comment.content}
         </div>
 
-        {token && (
+        {token && hasBadgeAccess && (
           <button
             className="text-[#2EC4B6] text-xs font-semibold hover:text-[#0A3161] transition-colors"
             onClick={() => { setReplyingTo(isReplying ? null : comment.id); setReplyText(''); setReplyError(''); }}
@@ -142,9 +170,11 @@ function ForumPostPageContent({ params }) {
   const [commentError, setCommentError] = useState("");
   const [replyError, setReplyError] = useState("");
   const [token, setToken] = useState(null);
+  const [hasBadgeAccess, setHasBadgeAccess] = useState(false);
 
   useEffect(() => {
     setToken(localStorage.getItem('token'));
+    setHasBadgeAccess(canPostInForum(getStoredUser()));
   }, []);
   const BACKEND_STORAGE_URL = process.env.NEXT_PUBLIC_BACKEND_STORAGE_URL;
 
@@ -287,8 +317,10 @@ function ForumPostPageContent({ params }) {
         </p>
       </div>
 
-      {/* Comment composer / sign-in CTA */}
-      {token ? (
+      {/* Comment composer / badge-required CTA / sign-in CTA */}
+      {token && !hasBadgeAccess ? (
+        <BadgeRequiredPrompt />
+      ) : token ? (
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 mb-6">
           <label className="block text-sm font-semibold text-[#40433F] mb-2">Add a Comment</label>
           <textarea
@@ -338,6 +370,7 @@ function ForumPostPageContent({ params }) {
                 comment={c}
                 backendUrl={BACKEND_STORAGE_URL}
                 token={token}
+                hasBadgeAccess={hasBadgeAccess}
                 replyingTo={replyingTo}
                 setReplyingTo={setReplyingTo}
                 replyText={replyText}

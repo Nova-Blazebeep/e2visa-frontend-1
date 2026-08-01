@@ -276,6 +276,18 @@ const SignUp = () => {
           Create Your Free Account
 
         </h1>
+        {formData.userType && formData.userType !== 'Buyer' && (
+          <div className="w-full max-w-[540px] mx-auto mb-6 rounded-xl border border-[#2EC4B6]/30 bg-[#2EC4B6]/5 px-5 py-4">
+            <p className="text-sm font-semibold text-[#1B263B]">
+              {formData.userType} accounts need an active badge
+            </p>
+            <p className="text-xs text-[#40433F] mt-1 leading-relaxed">
+              After you sign up and verify your email, visit your account Settings to get your badge —
+              it's what lets you post and answer questions in the forum. Payment is handled outside
+              E2Visa; once confirmed, we'll activate your badge and you're all set.
+            </p>
+          </div>
+        )}
         <div className="flex items-center justify-center w-full">
           <form
             onSubmit={handleSubmit}

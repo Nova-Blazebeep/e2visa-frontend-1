@@ -25,6 +25,17 @@ const BusinessDetail = ({ params }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imageLoading, setImageLoading] = useState(true);
 
+  const getOwnedListingHref = () => {
+    if (!business) return null;
+    try {
+      const stored = JSON.parse(localStorage.getItem('userDetail'));
+      if (!stored || stored.id !== business.user_id) return null;
+    } catch {
+      return null;
+    }
+    return `/dashboard/listings/${business.business_type === 'real-estate' ? 'real-estate' : 'business'}/${business.id}/edit`;
+  };
+
   const shareLink = async (title) => {
     const url = window.location.href;
     try {
@@ -475,16 +486,30 @@ const BusinessDetail = ({ params }) => {
               {/* Title is listing_heading only — business name is confidential */}
               <div className="flex items-start justify-between gap-4 mb-2">
                 <h1 className="text-2xl xl:text-3xl font-semibold text-[#40433F]">{business.listing_heading}</h1>
-                <button
-                  onClick={() => shareLink(business.listing_heading)}
-                  className="flex-shrink-0 flex items-center gap-1.5 text-sm text-[#0A3161] hover:text-[#2EC4B6] transition-colors border border-[#0A3161] hover:border-[#2EC4B6] rounded-lg px-3 py-1.5"
-                  title="Share this listing"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-                  </svg>
-                  Share
-                </button>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  {getOwnedListingHref() && (
+                    <Link
+                      href={getOwnedListingHref()}
+                      className="flex-shrink-0 flex items-center gap-1.5 text-sm text-white bg-[#40433F] hover:bg-[#363936] transition-colors rounded-lg px-3 py-1.5"
+                      title="Edit this listing"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                      Edit Listing
+                    </Link>
+                  )}
+                  <button
+                    onClick={() => shareLink(business.listing_heading)}
+                    className="flex-shrink-0 flex items-center gap-1.5 text-sm text-[#0A3161] hover:text-[#2EC4B6] transition-colors border border-[#0A3161] hover:border-[#2EC4B6] rounded-lg px-3 py-1.5"
+                    title="Share this listing"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                    </svg>
+                    Share
+                  </button>
+                </div>
               </div>
             </div>
             <FinancialInfo />
@@ -534,16 +559,30 @@ const BusinessDetail = ({ params }) => {
               {/* Title is listing_heading only — business name is confidential */}
               <div className="flex items-start justify-between gap-4 mb-2">
                 <h1 className="text-2xl xl:text-3xl font-semibold text-[#40433F]">{business.listing_heading}</h1>
-                <button
-                  onClick={() => shareLink(business.listing_heading)}
-                  className="flex-shrink-0 flex items-center gap-1.5 text-sm text-[#0A3161] hover:text-[#2EC4B6] transition-colors border border-[#0A3161] hover:border-[#2EC4B6] rounded-lg px-3 py-1.5"
-                  title="Share this listing"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-                  </svg>
-                  Share
-                </button>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  {getOwnedListingHref() && (
+                    <Link
+                      href={getOwnedListingHref()}
+                      className="flex-shrink-0 flex items-center gap-1.5 text-sm text-white bg-[#40433F] hover:bg-[#363936] transition-colors rounded-lg px-3 py-1.5"
+                      title="Edit this listing"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                      Edit Listing
+                    </Link>
+                  )}
+                  <button
+                    onClick={() => shareLink(business.listing_heading)}
+                    className="flex-shrink-0 flex items-center gap-1.5 text-sm text-[#0A3161] hover:text-[#2EC4B6] transition-colors border border-[#0A3161] hover:border-[#2EC4B6] rounded-lg px-3 py-1.5"
+                    title="Share this listing"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                    </svg>
+                    Share
+                  </button>
+                </div>
               </div>
             </div>
             <FinancialInfo />

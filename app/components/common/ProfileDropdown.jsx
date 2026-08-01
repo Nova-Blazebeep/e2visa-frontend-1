@@ -96,7 +96,20 @@ const ProfileDropdown = ({ user }) => {
               />
             </div>
             <div className="min-w-0">
-              <p className="text-sm font-semibold text-[#1E1E1E] truncate">{userInfo?.name || 'User Name'}</p>
+              <p className="text-sm font-semibold text-[#1E1E1E] truncate flex items-center gap-1.5">
+                {userInfo?.name || 'User Name'}
+                {userInfo?.badge_status === 'active' && userInfo?.role_badge_icon && (
+                  <Image
+                    src={`${process.env.NEXT_PUBLIC_BACKEND_STORAGE_URL}/${userInfo.role_badge_icon}`}
+                    alt={`${userInfo.role} badge`}
+                    title={`Active ${userInfo.role} Badge`}
+                    width={16}
+                    height={16}
+                    className="rounded-full flex-shrink-0 ring-1 ring-gray-200"
+                    unoptimized
+                  />
+                )}
+              </p>
               <p className="text-xs text-gray-500 truncate">{userInfo?.email || 'user@example.com'}</p>
               {userInfo?.role && (
                 <span className="inline-block mt-1 text-[9px] font-semibold uppercase tracking-wide text-[#0A3161] bg-[#0A3161]/8 px-2 py-0.5 rounded-full">
@@ -119,17 +132,6 @@ const ProfileDropdown = ({ user }) => {
                 <rect x="3" y="16" width="7" height="5" rx="1" />
               </svg>
               Dashboard
-            </Link>
-            <Link
-              href="/dashboard?section=settings&tab=profile"
-              onClick={handleProfileClick}
-              className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-[#1E1E1E] hover:bg-gray-50 transition-colors cursor-pointer"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#40433F" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                <circle cx="12" cy="7" r="4" />
-              </svg>
-              Profile Settings
             </Link>
           </div>
 
