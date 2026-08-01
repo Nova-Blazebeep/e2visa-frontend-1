@@ -113,7 +113,7 @@ export default function ListingsTabs() {
           New Listings
         </h1>
         <p className="text-center text-gray-300 text-sm md:text-base mb-16 max-w-2xl mx-auto">
-          Just listed ― explore businesses and propertie waiting for you.
+          Just listed ― explore businesses and properties waiting for you testing pipeline.
         </p>
 
         {loading ? (
